@@ -2,14 +2,14 @@
 
 [![Build](https://github.com/sqware-gg/DiscordPlus/actions/workflows/build.yml/badge.svg)](https://github.com/sqware-gg/DiscordPlus/actions/workflows/build.yml)
 
-DiscordPlus connects a Paper Minecraft server to a Discord community. It relays chat, sends styled server events, supports account linking, exposes lightweight Discord commands, and can sync Minecraft permission groups to Discord roles.
+DiscordPlus is a Minecraft Discord bridge plugin for Paper servers. It connects in-game chat, server events, account linking, player status commands, and Discord role sync in one configurable plugin.
 
-It is built for Minecraft server owners who want a polished Discord bridge without giving up control of formatting, channels, or role behavior.
+Use it to build an active Discord community around your Minecraft server: relay chat, announce joins and deaths, post advancement messages, show online players, link accounts, and keep Discord roles aligned with Minecraft permissions.
 
 ## Links
 
 - Website: https://sqware.gg
-- Plugin information and support: https://discord.sqware.gg
+- Support and plugin updates: https://discord.sqware.gg
 
 ## Compatibility
 
@@ -19,22 +19,30 @@ It is built for Minecraft server owners who want a polished Discord bridge witho
 - Discord library: JDA `6.4.1`
 - Build tool: Maven
 
-As of May 2026, Paper is the supported server target. The plugin includes a legacy chat fallback, but modern Paper chat events give the best result.
+As of May 2026, Paper is the supported server target. The plugin includes a legacy chat fallback, but modern Paper chat events provide the best chat relay behavior.
+
+## Why Server Owners Use It
+
+- Bring Minecraft chat and Discord chat into one community feed.
+- Announce server activity with clean Discord embeds.
+- Let players link Minecraft and Discord accounts.
+- Sync Discord roles from Minecraft permissions and groups.
+- Keep event, staff, and chat messages in separate Discord channels.
+- Customize Discord formatting without editing source code.
 
 ## Features
 
 - Minecraft chat to Discord.
-- Optional webhook mode for Minecraft chat with player-style names and avatars.
 - Discord chat to Minecraft.
-- Player account linking with `/discord link` and `!link <code>`.
-- Discord-side unlinking with `!unlink`.
-- Discord-side `!online` and `!players` commands.
-- Optional linked Discord role.
-- Permission-based Discord role sync for LuckPerms-style permissions such as `group.vip`.
-- Join, leave, first-join, advancement, death, lifecycle, and reload messages.
-- Styled Discord text or embeds for events.
-- Configurable event, chat, and staff channel routing.
-- Admin broadcast command for purchase and announcement style messages.
+- Optional webhook chat mode with player-style names and avatars.
+- Account linking with `/discord link` and `!link <code>`.
+- Discord commands: `!online`, `!players`, `!link`, and `!unlink`.
+- Optional linked-account Discord role.
+- Permission-based role sync for Minecraft groups.
+- Join, leave, first-join, advancement, death, startup, shutdown, and reload messages.
+- Text or embed styles for server events.
+- Channel routing for chat, events, and staff/admin lifecycle messages.
+- Admin broadcast styles for purchase messages, announcements, and custom broadcasts.
 
 ## Discord Bot Setup
 
@@ -51,9 +59,9 @@ As of May 2026, Paper is the supported server target. The plugin includes a lega
 
 ## Plugin Installation
 
-1. Download the latest DiscordPlus jar from GitHub Releases.
+1. Download the latest jar from the GitHub Releases page.
 2. Stop your Minecraft server.
-3. Put the jar in your server `plugins` folder.
+3. Put the jar in the server `plugins` folder.
 4. Start the server once to generate `plugins/DiscordPlus/config.yml`.
 5. Set `bot.token`, `bot.guild-id`, and `channels.chat-channel-id`.
 6. Set `server.invite-url` if you want `/discord invite`.
@@ -110,7 +118,7 @@ discordplus.admin    - admin sync, test, broadcast, and reload commands, default
 
 ## Role Sync
 
-Role sync uses Bukkit permissions. With LuckPerms, map Discord roles to group permissions:
+Role sync maps Minecraft permissions to Discord role IDs. It works well with permission plugins that expose group permissions such as `group.vip` or `group.staff`.
 
 ```yaml
 role-sync:
@@ -121,9 +129,9 @@ role-sync:
       role-id: "123456789012345678"
 ```
 
-DiscordPlus only manages roles that you configure in `role-sync.mappings` and the optional linked role. It does not touch unrelated Discord roles.
+DiscordPlus only manages roles configured in `role-sync.mappings` and the optional linked role. It does not touch unrelated Discord roles.
 
-`role-sync.remove-unmatched-mapped-roles` is disabled by default. Leave it disabled if Discord should be the long-term source of truth for premium or manually granted roles. Enable it only when Minecraft permissions are the authority and you want DiscordPlus to remove mapped roles when the matching Minecraft permission is gone.
+`role-sync.remove-unmatched-mapped-roles` is disabled by default. Leave it disabled if Discord should remain the long-term source of truth for premium or manually granted roles. Enable it only when Minecraft permissions are the authority and mapped Discord roles should be removed when the matching permission is gone.
 
 ## Styling
 
@@ -145,7 +153,7 @@ Channel routing is controlled under `channels`.
 
 DiscordPlus does not overwrite your existing `config.yml`.
 
-If your config is old or missing the current `config-version`, the plugin writes a fresh reference file to `plugins/DiscordPlus/config-new.yml`. Compare it with your current config and copy over the settings you want.
+If your config is old or missing the current `config-version`, the plugin writes `plugins/DiscordPlus/config-new.yml`. Compare it with your current config and copy over the settings you want.
 
 ## Build From Source
 
@@ -161,12 +169,12 @@ target/DiscordPlus-0.1.0.jar
 
 ## Troubleshooting
 
-- If the bot does not connect, check the token, gateway intents, and console startup logs.
-- If Discord messages do not appear in Minecraft, confirm `features.discord-to-minecraft-chat` and the configured channel ID.
-- If Minecraft chat does not appear in Discord, confirm `features.minecraft-to-discord-chat` and bot channel permissions.
-- If role sync does not work, move the bot role above managed roles and verify the mapped permission is present on the Minecraft player.
-- If webhook mode fails, check the webhook URL and make sure it belongs to the intended channel.
+- Bot does not connect: check the token, enabled gateway intents, and console startup logs.
+- Discord chat does not appear in Minecraft: confirm `features.discord-to-minecraft-chat` and the configured channel ID.
+- Minecraft chat does not appear in Discord: confirm `features.minecraft-to-discord-chat` and bot channel permissions.
+- Role sync does not work: move the bot role above managed roles and verify the mapped Minecraft permission is present.
+- Webhook mode fails: check the webhook URL and make sure it belongs to the intended Discord channel.
 
 ## Support
 
-For setup help, compatibility questions, and plugin information, use https://discord.sqware.gg.
+For setup help, compatibility questions, and plugin updates, use https://discord.sqware.gg.
