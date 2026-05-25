@@ -11,6 +11,10 @@ Use it to build an active Discord community around your Minecraft server: relay 
 - Website: https://sqware.gg
 - Support and plugin updates: https://discord.sqware.gg
 
+## Screenshots
+
+Screenshot capture guidance is available in [docs/screenshots](docs/screenshots/README.md).
+
 ## Compatibility
 
 - Server software: Paper
@@ -154,6 +158,8 @@ Channel routing is controlled under `channels`.
 DiscordPlus does not overwrite your existing `config.yml`.
 
 If your config is old or missing the current `config-version`, the plugin writes `plugins/DiscordPlus/config-new.yml`. Compare it with your current config and copy over the settings you want.
+
+Release history is tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## Build From Source
 
