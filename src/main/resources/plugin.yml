@@ -1,0 +1,21 @@
+name: DiscordPlus
+version: 0.1.0-SNAPSHOT
+main: dev.discordplus.DiscordPlusPlugin
+api-version: '1.18'
+author: SQWARE / Conflict
+website: https://sqware.gg
+description: Discord chat, linking, and role synchronisation for Paper servers.
+commands:
+  discord:
+    description: Link Discord, check status, sync roles, or reload DiscordPlus.
+    usage: /discord
+    aliases:
+      - discordplus
+      - dc
+permissions:
+  discordplus.command:
+    description: Allows player DiscordPlus commands.
+    default: true
+  discordplus.admin:
+    description: Allows DiscordPlus admin commands.
+    default: op

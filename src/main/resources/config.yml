@@ -1,0 +1,483 @@
+# DiscordPlus
+# Used for update checks.
+# Do not change unless you know what you are doing.
+config-version: 5
+
+# Main setup:
+# 1. Create a Discord bot in the Discord Developer Portal.
+# 2. Enable Message Content Intent and Server Members Intent.
+# 3. Invite the bot with Send Messages, Read Message History, View Channels, and Manage Roles.
+# 4. Paste the bot token and channel IDs below.
+
+bot:
+  # Your Discord bot token. Keep this private.
+  # The plugin will not connect to Discord until this is set.
+  token: ""
+
+  # Your Discord server ID.
+  # Recommended even if the bot is only in one server.
+  guild-id: ""
+
+  # Delay Discord login after the plugin enables.
+  # This keeps Minecraft startup responsive while JDA loads and connects.
+  # Set to 0 if you want the bot to connect immediately.
+  connect-delay-seconds: 5
+
+  activity:
+    # Show a Discord activity on the bot profile.
+    enabled: true
+
+    # Activity type.
+    # Options: playing, watching, listening, competing, streaming, custom
+    # Example: type: "playing" with text: "SQWARE" shows "Playing SQWARE".
+    type: "playing"
+
+    # Activity text.
+    text: "Minecraft"
+
+    # Only used when type is "streaming".
+    # Must be a valid Twitch or YouTube URL.
+    url: ""
+
+    # Discord bots cannot set a custom activity logo/image here.
+    # Custom logos are Discord Rich Presence/app assets, not normal bot activity.
+
+server:
+  # Name used in Discord embeds and placeholders.
+  name: "Minecraft"
+
+  # Optional. Shown by /discord invite.
+  invite-url: ""
+
+channels:
+  # Discord text channel ID for chat relay and Discord chat commands.
+  chat-channel-id: ""
+
+  # Optional Discord text channel ID for event embeds.
+  # Join, leave, first join, death, advancement, and lifecycle messages use this when set.
+  # Falls back to chat-channel-id.
+  events-channel-id: ""
+
+  # Optional Discord text channel ID for staff/admin lifecycle messages.
+  # Used when lifecycle.use-staff-channel is true.
+  # Falls back to events-channel-id, then chat-channel-id.
+  staff-channel-id: ""
+
+features:
+  # Send Minecraft chat to Discord.
+  minecraft-to-discord-chat: true
+
+  # Send Discord chat to Minecraft.
+  discord-to-minecraft-chat: true
+
+  # Send join/leave messages to Discord.
+  join-leave-messages: true
+
+  # Send first-time player join messages to Discord.
+  first-join-messages: true
+
+  # Send Minecraft advancement messages to Discord.
+  advancement-messages: true
+
+  # Send Minecraft death messages to Discord.
+  death-messages: true
+
+  # Send server startup, shutdown, and reload messages to Discord.
+  lifecycle-messages: true
+
+  # Enable Discord commands like !online and !players.
+  discord-commands: true
+
+join-leave:
+  # Do not send join/leave messages from these worlds.
+  ignored-worlds: []
+
+first-join:
+  # If false, a first-time player gets only the first-join message, not a normal join message too.
+  also-send-join-message: false
+
+  # Do not send first-join messages from these worlds.
+  ignored-worlds: []
+
+advancements:
+  # If true, only relay advancements Minecraft would announce in chat.
+  # This prevents most background/internal advancements from appearing in Discord.
+  announce-chat-only: true
+
+  # If false, hidden advancements are not relayed.
+  include-hidden: false
+
+  # Do not send advancement messages from these worlds.
+  ignored-worlds: []
+
+  # Ignore advancements whose full key starts with any of these values.
+  # Recipes are stored as advancements internally, so this avoids Discord spam.
+  ignored-key-prefixes:
+    - "minecraft:recipes/"
+
+  # Ignore exact advancement keys.
+  # Example: "minecraft:story/root"
+  ignored-keys: []
+
+  # Labels available as {advancement_type_label}.
+  type-labels:
+    task: "Advancement Made"
+    goal: "Goal Reached"
+    challenge: "Challenge Complete"
+
+  # Colors available as {advancement_color}.
+  type-colors:
+    task: "#57F287"
+    goal: "#FEE75C"
+    challenge: "#EB459E"
+
+death-messages:
+  # If true, only player-vs-player deaths are relayed.
+  pvp-only: false
+
+  # Do not send death messages from these worlds.
+  ignored-worlds: []
+
+  # Do not send death messages for these Bukkit damage causes.
+  # Examples: fall, void, fire, lava, entity_attack
+  ignored-causes: []
+
+lifecycle:
+  # Send a message when the Discord bot becomes ready after server startup.
+  send-startup: true
+
+  # Try to send a message when the plugin/server shuts down.
+  send-shutdown: true
+
+  # Send a message after /discord reload reconnects the bot.
+  send-reload: true
+
+  # If true, lifecycle messages use channels.staff-channel-id when set.
+  use-staff-channel: false
+
+linking:
+  # Allow players to link their Minecraft account to Discord.
+  enabled: true
+
+  # Prefix for Discord commands.
+  # Examples: !link 123456, !unlink, !online
+  command-prefix: "!"
+
+  # How long /discord link codes stay valid.
+  code-expiry-minutes: 10
+
+  # Optional Discord role given to linked users.
+  # Leave empty to disable.
+  linked-role-id: ""
+
+role-sync:
+  # Sync Minecraft permissions/groups to Discord roles.
+  # Works well with LuckPerms group permissions like group.vip.
+  enabled: true
+
+  # How often online linked players are checked.
+  interval-minutes: 5
+
+  # Delay after join before syncing roles.
+  # Useful because permission plugins may load player data shortly after join.
+  join-sync-delay-seconds: 3
+
+  # If true, DiscordPlus removes mapped Discord roles when the player no longer has the permission.
+  # Safer default is false, so it only adds matching roles.
+  remove-unmatched-mapped-roles: false
+
+  # Map Minecraft permissions to Discord role IDs.
+  # The bot role must be above every role it manages.
+  mappings:
+    vip:
+      permission: "group.vip"
+      role-id: ""
+    staff:
+      permission: "group.staff"
+      role-id: ""
+
+discord-style:
+  minecraft-chat:
+    # If false, Minecraft chat is sent by the bot account.
+    # If true, Minecraft chat is sent through a Discord webhook with player-style names.
+    use-webhook: false
+
+    # Optional webhook URL for nicer Minecraft -> Discord chat.
+    # Create in Discord: Channel Settings > Integrations > Webhooks.
+    # Keep this private.
+    webhook-url: ""
+
+    # Webhook sender name.
+    username: "{player}"
+
+    # Optional webhook avatar URL.
+    # Example with a head avatar service:
+    # "https://mc-heads.net/avatar/{player}/64"
+    avatar-url: ""
+
+    # Minecraft chat format shown in Discord.
+    content: "**{player}**: {message}"
+
+  join:
+    # Use "embed" for a styled Discord box, or "text" for a normal message.
+    style: "embed"
+    text: "**{player}** joined **{server}** - {online}/{max_players} online"
+    embed:
+      # Optional author row shown above the title.
+      author-name: "Player Activity"
+      author-url: ""
+      author-icon-url: "{player_avatar_url}"
+      title: "{player} joined"
+      description: "**{server}** now has **{online}/{max_players}** players online."
+      color: "#3BA55D"
+      footer: "{world} | {x}, {y}, {z}"
+      thumbnail-url: ""
+      image-url: ""
+      fields: []
+      timestamp: true
+
+  quit:
+    style: "embed"
+    text: "**{player}** left **{server}** - {online}/{max_players} online"
+    embed:
+      author-name: "Player Activity"
+      author-url: ""
+      author-icon-url: "{player_avatar_url}"
+      title: "{player} left"
+      description: "**{server}** now has **{online}/{max_players}** players online."
+      color: "#ED4245"
+      footer: "{world} | {x}, {y}, {z}"
+      thumbnail-url: ""
+      image-url: ""
+      fields: []
+      timestamp: true
+
+  first-join:
+    style: "embed"
+    text: "**{player}** joined **{server}** for the first time"
+    embed:
+      author-name: "New Player"
+      author-url: ""
+      author-icon-url: "{player_avatar_url}"
+      title: "{player} joined for the first time"
+      description: "Welcome to **{server}**. There are now **{online}/{max_players}** players online."
+      color: "#00D166"
+      footer: "{uuid}"
+      thumbnail-url: ""
+      image-url: ""
+      fields:
+        - name: "World"
+          value: "{world}"
+          inline: true
+        - name: "Location"
+          value: "{x}, {y}, {z}"
+          inline: true
+      timestamp: true
+
+  advancement:
+    style: "embed"
+    text: "**{player}** completed **{advancement_title}**"
+    embed:
+      author-name: "{advancement_type_label} | {player}"
+      author-url: ""
+      author-icon-url: "{player_avatar_url}"
+      title: "{advancement_title}"
+      description: "{advancement_description}"
+      color: "{advancement_color}"
+      footer: "{server} | {advancement_key}"
+      thumbnail-url: ""
+      image-url: ""
+      fields:
+        - name: "Player"
+          value: "{player}"
+          inline: true
+        - name: "Type"
+          value: "{advancement_type}"
+          inline: true
+      timestamp: true
+
+  death:
+    style: "embed"
+    text: "{death_message}"
+    embed:
+      author-name: "Player Death"
+      author-url: ""
+      author-icon-url: "{player_avatar_url}"
+      title: "{player} died"
+      description: "{death_message}"
+      color: "#ED4245"
+      footer: "{world} | {x}, {y}, {z}"
+      thumbnail-url: ""
+      image-url: ""
+      fields:
+        - name: "Cause"
+          value: "{death_cause}"
+          inline: true
+        - name: "Killer"
+          value: "{killer}"
+          inline: true
+      timestamp: true
+
+  server-start:
+    style: "embed"
+    text: "**{server}** is online."
+    embed:
+      author-name: "Server Lifecycle"
+      author-url: ""
+      author-icon-url: ""
+      title: "{server} online"
+      description: "{lifecycle_description}"
+      color: "{lifecycle_color}"
+      footer: "Discord+"
+      thumbnail-url: ""
+      image-url: ""
+      fields:
+        - name: "Players"
+          value: "{online}/{max_players}"
+          inline: true
+      timestamp: true
+
+  server-stop:
+    style: "embed"
+    text: "**{server}** is offline."
+    embed:
+      author-name: "Server Lifecycle"
+      author-url: ""
+      author-icon-url: ""
+      title: "{server} offline"
+      description: "{lifecycle_description}"
+      color: "{lifecycle_color}"
+      footer: "Discord+"
+      thumbnail-url: ""
+      image-url: ""
+      fields: []
+      timestamp: true
+
+  reload:
+    style: "embed"
+    text: "**DiscordPlus reloaded on {server}.**"
+    embed:
+      author-name: "Server Lifecycle"
+      author-url: ""
+      author-icon-url: ""
+      title: "DiscordPlus reloaded"
+      description: "{lifecycle_description}"
+      color: "{lifecycle_color}"
+      footer: "{server}"
+      thumbnail-url: ""
+      image-url: ""
+      fields:
+        - name: "Players"
+          value: "{online}/{max_players}"
+          inline: true
+      timestamp: true
+
+  broadcasts:
+    purchase:
+      style: "embed"
+      text: "**{broadcast_player}** purchased **{broadcast_message}**."
+      embed:
+        author-name: "Purchase"
+        author-url: ""
+        author-icon-url: "{broadcast_player_avatar_url}"
+        title: "New Purchase"
+        description: "**{broadcast_player}** purchased **{broadcast_message}**."
+        color: "#FEE75C"
+        footer: "{server}"
+        thumbnail-url: ""
+        image-url: ""
+        fields:
+          - name: "Player"
+            value: "{broadcast_player}"
+            inline: true
+          - name: "Item"
+            value: "{broadcast_message}"
+            inline: true
+        timestamp: true
+
+    announcement:
+      style: "embed"
+      text: "**{broadcast_message}**"
+      embed:
+        author-name: "Broadcast"
+        author-url: ""
+        author-icon-url: ""
+        title: "{broadcast_label}"
+        description: "{broadcast_message}"
+        color: "#5865F2"
+        footer: "{server}"
+        thumbnail-url: ""
+        image-url: ""
+        fields: []
+        timestamp: true
+
+  status:
+    # Used by !online.
+    style: "embed"
+    text: "**{server}**: {online}/{max_players} online"
+    embed:
+      author-name: "Server Status"
+      author-url: ""
+      author-icon-url: ""
+      title: "{server}"
+      description: "**{online}/{max_players}** players online."
+      color: "#5865F2"
+      footer: "Discord+"
+      thumbnail-url: ""
+      image-url: ""
+      fields:
+        - name: "Players"
+          value: "{players}"
+          inline: false
+      timestamp: true
+
+minecraft-style:
+  # Discord chat format shown in Minecraft.
+  # Minecraft color codes with & are supported.
+  discord-chat: "&9[Discord] &f{user}: {message}"
+
+messages:
+  # Prefix for in-game DiscordPlus messages.
+  prefix: "&9Discord+ &8> &f"
+
+# Placeholders:
+# {server}       Server name from this config
+# {player}       Player username
+# {display_name} Player display name without colors
+# {uuid}         Player UUID
+# {player_avatar_url} Player head image URL for Discord embed icons
+# {message}      Chat message
+# {online}       Online player count
+# {max_players}  Server max players
+# {players}      Online player list
+# {world}        Player world
+# {x} {y} {z}    Player block coordinates
+# {event_type}   Generic event type
+# {event_label}  Generic event label
+# {event_color}  Generic event color
+# {advancement_key}         Full advancement key, like minecraft:story/mine_stone
+# {advancement_namespace}   Advancement namespace, like minecraft
+# {advancement_path}        Advancement path, like story/mine_stone
+# {advancement_title}       Advancement display title
+# {advancement_description} Advancement display description
+# {advancement_type}        task, goal, or challenge
+# {advancement_type_label}  Configured label for the advancement type
+# {advancement_color}       Configured color for the advancement type
+# {advancement_hidden}      true if the advancement is hidden
+# {advancement_announces}   true if Minecraft announces it in chat
+# {death_message}       Minecraft death message
+# {death_cause}         Bukkit damage cause, like fall, lava, entity_attack
+# {killer}              Killer username, or None
+# {killer_uuid}         Killer UUID, if there is one
+# {killer_display_name} Killer display name, if there is one
+# {killer_avatar_url}   Killer head image URL, if there is one
+# {is_pvp_death}        true when the death was caused by a player
+# {lifecycle_type}        startup, shutdown, or reload
+# {lifecycle_label}       Configured lifecycle label
+# {lifecycle_description} Lifecycle message description
+# {lifecycle_color}       Lifecycle embed color
+# {broadcast_type}        Broadcast style key, like purchase
+# {broadcast_label}       Broadcast style label, like Purchase
+# {broadcast_message}     Broadcast message text
+# {broadcast_player}      Broadcast player name, or empty
+# {broadcast_player_avatar_url} Broadcast player head image URL, or empty
