@@ -156,7 +156,7 @@ If your config is old or missing the current `config-version`, the plugin writes
 The shaded server jar is written to:
 
 ```text
-target/DiscordPlus-0.1.0-SNAPSHOT.jar
+target/DiscordPlus-0.1.0.jar
 ```
 
 ## Troubleshooting

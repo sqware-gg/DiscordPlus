@@ -1,5 +1,5 @@
 name: DiscordPlus
-version: 0.1.0-SNAPSHOT
+version: 0.1.0
 main: dev.discordplus.DiscordPlusPlugin
 api-version: '1.18'
 author: SQWARE / Conflict
