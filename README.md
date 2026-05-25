@@ -177,6 +177,10 @@ target/DiscordPlus-0.1.0.jar
 - Role sync does not work: move the bot role above managed roles and verify the mapped Minecraft permission is present.
 - Webhook mode fails: check the webhook URL and make sure it belongs to the intended Discord channel.
 
+## License
+
+DiscordPlus is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
 ## Support
 
 For setup help, compatibility questions, and plugin updates, use https://discord.sqware.gg.
