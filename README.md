@@ -113,12 +113,7 @@ Discord users can DM the bot or type in the configured server:
 ```
 
 The command prefix is configurable under `linking.command-prefix`.
-PointsPlus command results reply to the original Discord message in the channel where the command was used.
-PlaytimePlus commands are available when PlaytimePlus is installed and `integrations.playtimeplus.events.commands` is enabled.
-Auctions+ bid commands are available when Auctions+ is installed and `integrations.auctionsplus.events.commands` is enabled.
-Discord auction bids require a linked Minecraft account and a verified `auctionsplus.bid` permission.
-Server owners can restrict auction commands with `integrations.auctionsplus.commands.allowed-channel-ids`,
-`require-player-online`, `cooldown-seconds`, `max-bid`, and `list-limit`.
+Auction bids require a linked Minecraft account with `auctionsplus.bid`.
 
 ## Permissions
 
