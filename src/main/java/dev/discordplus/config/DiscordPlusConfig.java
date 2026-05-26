@@ -29,6 +29,10 @@ public final class DiscordPlusConfig {
     private boolean deathMessages;
     private boolean lifecycleMessages;
     private boolean discordCommands;
+    private boolean slashCommandsEnabled;
+    private boolean slashCommandsRefreshOnStart;
+    private boolean clearGlobalCommandsWhenGuildSet;
+    private boolean integrationsEnabled;
     private boolean linkingEnabled;
     private String commandPrefix;
     private int codeExpiryMinutes;
@@ -54,6 +58,10 @@ public final class DiscordPlusConfig {
     private DiscordEventStyle reloadStyle;
     private DiscordEventStyle statusStyle;
     private Map<String, DiscordEventStyle> broadcastStyles;
+    private Map<String, IntegrationSettings> integrations;
+    private AuctionsPlusCommandSettings auctionsPlusCommandSettings;
+    private PointsPlusCommandSettings pointsPlusCommandSettings;
+    private PlaytimePlusCommandSettings playtimePlusCommandSettings;
     private String discordToMinecraftFormat;
     private String messagePrefix;
 
@@ -80,6 +88,11 @@ public final class DiscordPlusConfig {
         deathMessages = plugin.getConfig().getBoolean("features.death-messages", true);
         lifecycleMessages = plugin.getConfig().getBoolean("features.lifecycle-messages", true);
         discordCommands = plugin.getConfig().getBoolean("features.discord-commands", true);
+        slashCommandsEnabled = plugin.getConfig().getBoolean("slash-commands.enabled", true);
+        slashCommandsRefreshOnStart = plugin.getConfig().getBoolean("slash-commands.refresh-on-start", true);
+        clearGlobalCommandsWhenGuildSet = plugin.getConfig().getBoolean("slash-commands.clear-global-commands-when-guild-set", true);
+        integrationsEnabled = plugin.getConfig().contains("integrations.enabled")
+                && plugin.getConfig().getBoolean("integrations.enabled", true);
         linkingEnabled = plugin.getConfig().getBoolean("linking.enabled", true);
         commandPrefix = readString("linking.command-prefix", "!");
         if (commandPrefix.isBlank()) {
@@ -125,8 +138,12 @@ public final class DiscordPlusConfig {
                 "**{server}**: {online}/{max_players} online",
                 "embed", defaultStatusEmbed());
         broadcastStyles = readBroadcastStyles();
-        discordToMinecraftFormat = readString("minecraft-style.discord-chat", readString("format.discord-to-minecraft", "&9[Discord] &f{user}: {message}"));
-        messagePrefix = readString("messages.prefix", "&9Discord+ &8> &f");
+        integrations = readIntegrations();
+        auctionsPlusCommandSettings = readAuctionsPlusCommandSettings();
+        pointsPlusCommandSettings = readPointsPlusCommandSettings();
+        playtimePlusCommandSettings = readPlaytimePlusCommandSettings();
+        discordToMinecraftFormat = readString("minecraft-style.discord-chat", readString("format.discord-to-minecraft", "&#2b98fdDiscord &8› &f{user}&8: &7{message}"));
+        messagePrefix = readString("messages.prefix", "&#2b98fdDiscordPlus &8› &7");
     }
 
     private MinecraftChatStyle readMinecraftChatStyle() {
@@ -216,7 +233,7 @@ public final class DiscordPlusConfig {
                 "{player_avatar_url}",
                 "{player} joined",
                 "**{server}** now has **{online}/{max_players}** players online.",
-                "#3BA55D",
+                "#2b98fd",
                 "{world} | {x}, {y}, {z}",
                 "",
                 "",
@@ -232,7 +249,7 @@ public final class DiscordPlusConfig {
                 "{player_avatar_url}",
                 "{player} left",
                 "**{server}** now has **{online}/{max_players}** players online.",
-                "#ED4245",
+                "#8ecbff",
                 "{world} | {x}, {y}, {z}",
                 "",
                 "",
@@ -248,7 +265,7 @@ public final class DiscordPlusConfig {
                 "{player_avatar_url}",
                 "{player} joined for the first time",
                 "Welcome to **{server}**. There are now **{online}/{max_players}** players online.",
-                "#00D166",
+                "#57F287",
                 "{uuid}",
                 "",
                 "",
@@ -347,7 +364,7 @@ public final class DiscordPlusConfig {
                 "",
                 "{server}",
                 "**{online}/{max_players}** players online.",
-                "#5865F2",
+                "#2b98fd",
                 "Discord+",
                 "",
                 "",
@@ -364,6 +381,26 @@ public final class DiscordPlusConfig {
         styles.put("announcement", readEventStyle("discord-style.broadcasts.announcement", null,
                 "**{broadcast_message}**",
                 "embed", defaultAnnouncementBroadcastEmbed()));
+        for (String key : List.of(
+                "auction-listing",
+                "auction-sale",
+                "auction-bid",
+                "auction-won",
+                "auction-cancel",
+                "auction-expire",
+                "playtime-afk",
+                "playtime-reward",
+                "advancementplus-progress",
+                "advancementplus-completion",
+                "skinsplus-change",
+                "parcel-delivery",
+                "parcel-queued",
+                "parcel-failed",
+                "chatplus-broadcast"
+        )) {
+            styles.put(key, readEventStyle("discord-style.broadcasts." + key, null,
+                    "**{broadcast_message}**", "embed", defaultAnnouncementBroadcastEmbed()));
+        }
 
         ConfigurationSection section = plugin.getConfig().getConfigurationSection("discord-style.broadcasts");
         if (section != null) {
@@ -379,6 +416,96 @@ public final class DiscordPlusConfig {
         return Map.copyOf(styles);
     }
 
+    private Map<String, IntegrationSettings> readIntegrations() {
+        Map<String, IntegrationSettings> values = new LinkedHashMap<>();
+        values.put("auctionsplus", readIntegration("auctionsplus", defaults(Map.of(
+                "listing-created", true,
+                "listing-sold", true,
+                "bid-placed", true,
+                "auction-won", true,
+                "listing-cancelled", false,
+                "listing-expired", false,
+                "commands", true
+        ))));
+        values.put("playtimeplus", readIntegration("playtimeplus", defaults(Map.of(
+                "afk", false,
+                "reward", true,
+                "commands", true
+        ))));
+        values.put("advancementplus", readIntegration("advancementplus", defaults(Map.of(
+                "progress", false,
+                "completion", false
+        ))));
+        values.put("skinsplus", readIntegration("skinsplus", defaults(Map.of(
+                "change", false
+        ))));
+        values.put("parcel", readIntegration("parcel", defaults(Map.of(
+                "queued", true,
+                "delivered", true,
+                "failed", true
+        ))));
+        values.put("chatplus", readIntegration("chatplus", defaults(Map.of(
+                "broadcast", true
+        ))));
+        values.put("pointsplus", readIntegration("pointsplus", defaults(Map.of(
+                "commands", true
+        ))));
+        return Map.copyOf(values);
+    }
+
+    private AuctionsPlusCommandSettings readAuctionsPlusCommandSettings() {
+        String path = "integrations.auctionsplus.commands";
+        return new AuctionsPlusCommandSettings(
+                plugin.getConfig().getBoolean(path + ".allow-direct-messages", false),
+                readStringList(path + ".allowed-channel-ids", List.of()),
+                plugin.getConfig().getBoolean(path + ".require-player-online", false),
+                Math.max(0, plugin.getConfig().getInt(path + ".cooldown-seconds", 3)),
+                Math.max(0.0D, plugin.getConfig().getDouble(path + ".max-bid", 0.0D)),
+                Math.max(1, Math.min(25, plugin.getConfig().getInt(path + ".list-limit", 10)))
+        );
+    }
+
+    private PointsPlusCommandSettings readPointsPlusCommandSettings() {
+        String path = "integrations.pointsplus.commands";
+        return new PointsPlusCommandSettings(
+                plugin.getConfig().getBoolean(path + ".direct-message-results", false),
+                plugin.getConfig().getBoolean(path + ".allow-direct-messages", true),
+                readStringList(path + ".allowed-channel-ids", List.of()),
+                plugin.getConfig().getBoolean(path + ".require-linked-targets", true),
+                Math.max(0L, plugin.getConfig().getLong(path + ".max-payment", 1_000_000L)),
+                Math.max(1, Math.min(25, plugin.getConfig().getInt(path + ".top-limit", 10)))
+        );
+    }
+
+    private PlaytimePlusCommandSettings readPlaytimePlusCommandSettings() {
+        String path = "integrations.playtimeplus.commands";
+        return new PlaytimePlusCommandSettings(
+                plugin.getConfig().getBoolean(path + ".allow-direct-messages", true),
+                readStringList(path + ".allowed-channel-ids", List.of()),
+                Math.max(1, Math.min(25, plugin.getConfig().getInt(path + ".top-limit", 10)))
+        );
+    }
+
+    private IntegrationSettings readIntegration(String key, Map<String, Boolean> fallbackEvents) {
+        String path = "integrations." + key;
+        boolean enabled = plugin.getConfig().getBoolean(path + ".enabled", true);
+        Map<String, Boolean> events = new LinkedHashMap<>(fallbackEvents);
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection(path + ".events");
+        if (section != null) {
+            for (String eventKey : section.getKeys(false)) {
+                String normalized = normalizeKey(eventKey);
+                if (!normalized.isBlank()) {
+                    events.put(normalized, section.getBoolean(eventKey, events.getOrDefault(normalized, false)));
+                }
+            }
+        }
+        return new IntegrationSettings(enabled, Map.copyOf(events));
+    }
+
+    private Map<String, Boolean> defaults(Map<String, Boolean> values) {
+        return new LinkedHashMap<>(values);
+    }
+
     private EmbedStyle defaultPurchaseBroadcastEmbed() {
         return new EmbedStyle(
                 "Purchase",
@@ -386,7 +513,7 @@ public final class DiscordPlusConfig {
                 "{broadcast_player_avatar_url}",
                 "New Purchase",
                 "**{broadcast_player}** purchased **{broadcast_message}**.",
-                "#FEE75C",
+                "#f5c542",
                 "{server}",
                 "",
                 "",
@@ -403,7 +530,7 @@ public final class DiscordPlusConfig {
                 "",
                 "{broadcast_label}",
                 "{broadcast_message}",
-                "#5865F2",
+                "#2b98fd",
                 "{server}",
                 "",
                 "",
@@ -451,9 +578,9 @@ public final class DiscordPlusConfig {
                 readString("advancements.type-labels.task", "Advancement Made"),
                 readString("advancements.type-labels.goal", "Goal Reached"),
                 readString("advancements.type-labels.challenge", "Challenge Complete"),
-                readString("advancements.type-colors.task", "#57F287"),
-                readString("advancements.type-colors.goal", "#FEE75C"),
-                readString("advancements.type-colors.challenge", "#EB459E")
+                readString("advancements.type-colors.task", "#8ecbff"),
+                readString("advancements.type-colors.goal", "#2b98fd"),
+                readString("advancements.type-colors.challenge", "#b642ff")
         );
     }
 
@@ -542,6 +669,21 @@ public final class DiscordPlusConfig {
         if (minecraftChatStyle.useWebhook() && minecraftChatStyle.webhookUrl().isBlank()) {
             plugin.getLogger().warning("discord-style.minecraft-chat.use-webhook is enabled, but webhook-url is empty.");
         }
+        for (String channelId : pointsPlusCommandSettings.allowedChannelIds()) {
+            if (!isSnowflake(channelId)) {
+                plugin.getLogger().warning("integrations.pointsplus.commands.allowed-channel-ids contains an invalid Discord channel ID.");
+            }
+        }
+        for (String channelId : auctionsPlusCommandSettings.allowedChannelIds()) {
+            if (!isSnowflake(channelId)) {
+                plugin.getLogger().warning("integrations.auctionsplus.commands.allowed-channel-ids contains an invalid Discord channel ID.");
+            }
+        }
+        for (String channelId : playtimePlusCommandSettings.allowedChannelIds()) {
+            if (!isSnowflake(channelId)) {
+                plugin.getLogger().warning("integrations.playtimeplus.commands.allowed-channel-ids contains an invalid Discord channel ID.");
+            }
+        }
         for (RoleMapping mapping : roleMappings) {
             if (!isSnowflake(mapping.roleId())) {
                 plugin.getLogger().warning("Role mapping for permission '" + mapping.permission() + "' has an invalid Discord role ID.");
@@ -619,6 +761,51 @@ public final class DiscordPlusConfig {
 
     public boolean discordCommands() {
         return discordCommands;
+    }
+
+    public boolean slashCommandsEnabled() {
+        return slashCommandsEnabled;
+    }
+
+    public boolean slashCommandsRefreshOnStart() {
+        return slashCommandsRefreshOnStart;
+    }
+
+    public boolean clearGlobalCommandsWhenGuildSet() {
+        return clearGlobalCommandsWhenGuildSet;
+    }
+
+    public boolean integrationEnabled(String integrationKey, String eventKey) {
+        if (!integrationsEnabled) {
+            return false;
+        }
+        IntegrationSettings settings = integrations.get(normalizeKey(integrationKey));
+        return settings != null && settings.enabled()
+                && settings.events().getOrDefault(normalizeKey(eventKey), false);
+    }
+
+    public boolean pointsPlusCommandsEnabled() {
+        return integrationEnabled("pointsplus", "commands");
+    }
+
+    public boolean auctionsPlusCommandsEnabled() {
+        return integrationEnabled("auctionsplus", "commands");
+    }
+
+    public AuctionsPlusCommandSettings auctionsPlusCommandSettings() {
+        return auctionsPlusCommandSettings;
+    }
+
+    public PointsPlusCommandSettings pointsPlusCommandSettings() {
+        return pointsPlusCommandSettings;
+    }
+
+    public boolean playtimePlusCommandsEnabled() {
+        return integrationEnabled("playtimeplus", "commands");
+    }
+
+    public PlaytimePlusCommandSettings playtimePlusCommandSettings() {
+        return playtimePlusCommandSettings;
     }
 
     public boolean linkingEnabled() {
@@ -736,6 +923,32 @@ public final class DiscordPlusConfig {
     public record RoleMapping(String permission, String roleId) {
     }
 
+    public record IntegrationSettings(boolean enabled, Map<String, Boolean> events) {
+    }
+
+    public record AuctionsPlusCommandSettings(boolean allowDirectMessages, List<String> allowedChannelIds,
+                                              boolean requirePlayerOnline, int cooldownSeconds, double maxBid,
+                                              int listLimit) {
+        public boolean allowsChannel(String channelId) {
+            return allowedChannelIds.isEmpty() || allowedChannelIds.contains(channelId);
+        }
+    }
+
+    public record PointsPlusCommandSettings(boolean directMessageResults, boolean allowDirectMessages,
+                                            List<String> allowedChannelIds, boolean requireLinkedTargets,
+                                            long maxPayment, int topLimit) {
+        public boolean allowsChannel(String channelId) {
+            return allowedChannelIds.isEmpty() || allowedChannelIds.contains(channelId);
+        }
+    }
+
+    public record PlaytimePlusCommandSettings(boolean allowDirectMessages, List<String> allowedChannelIds,
+                                              int topLimit) {
+        public boolean allowsChannel(String channelId) {
+            return allowedChannelIds.isEmpty() || allowedChannelIds.contains(channelId);
+        }
+    }
+
     public record JoinLeaveSettings(List<String> ignoredWorlds) {
         public boolean ignoresWorld(String worldName) {
             return ignoredWorlds.stream().anyMatch(world -> world.equalsIgnoreCase(worldName));
@@ -803,7 +1016,7 @@ public final class DiscordPlusConfig {
                              String description, String color, String footer, String thumbnailUrl,
                              String imageUrl, List<EmbedField> fields, boolean timestamp) {
         public static EmbedStyle empty() {
-            return new EmbedStyle("", "", "", "", "", "#5865F2", "", "", "", List.of(), true);
+            return new EmbedStyle("", "", "", "", "", "#2b98fd", "", "", "", List.of(), true);
         }
     }
 

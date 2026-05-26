@@ -148,6 +148,14 @@ public final class DiscordBotService {
     }
 
     public void stop() {
+        stop(true);
+    }
+
+    public void stopNow() {
+        stop(false);
+    }
+
+    private void stop(boolean async) {
         lifecycle.incrementAndGet();
         BukkitTask pendingStartup = startupTask;
         startupTask = null;
@@ -158,19 +166,20 @@ public final class DiscordBotService {
         jda = null;
         starting.set(false);
         if (current != null) {
-            try {
-                current.shutdown();
-                if (!current.awaitShutdown(10, TimeUnit.SECONDS)) {
-                    current.shutdownNow();
-                    current.awaitShutdown(5, TimeUnit.SECONDS);
-                }
-            } catch (InterruptedException e) {
-                current.shutdownNow();
-                Thread.currentThread().interrupt();
-            } catch (RuntimeException e) {
-                plugin.getLogger().fine("Discord bot shutdown failed: " + e.getMessage());
-                current.shutdownNow();
+            Runnable shutdown = () -> shutdownDetached(current);
+            if (async && plugin.isEnabled()) {
+                plugin.getServer().getScheduler().runTaskAsynchronously(plugin, shutdown);
+            } else {
+                shutdown.run();
             }
+        }
+    }
+
+    private void shutdownDetached(JDA current) {
+        try {
+            current.shutdownNow();
+        } catch (Throwable e) {
+            plugin.getLogger().fine("Discord bot shutdown failed: " + e.getMessage());
         }
     }
 
@@ -281,7 +290,7 @@ public final class DiscordBotService {
             return false;
         }
         return sendStyledEvent(eventChannel(), config.firstJoinStyle(), player, null,
-                OnlineSnapshot.current(), EventContext.basic("first_join", "First Join", "#00D166"));
+                OnlineSnapshot.current(), EventContext.basic("first_join", "First Join", "#57F287"));
     }
 
     public boolean sendQuit(Player player) {
@@ -329,7 +338,7 @@ public final class DiscordBotService {
             return false;
         }
         return sendLifecycle(config.serverStartStyle(), new LifecycleSnapshot("startup", "Server Online",
-                serverName() + " is online.", "#3BA55D"));
+                serverName() + " is online.", "#57F287"));
     }
 
     public boolean sendServerStop() {
@@ -345,7 +354,7 @@ public final class DiscordBotService {
             return false;
         }
         return sendLifecycle(config.reloadStyle(), new LifecycleSnapshot("reload", "DiscordPlus Reloaded",
-                "DiscordPlus reloaded on " + serverName() + ".", "#FEE75C"));
+                "DiscordPlus reloaded on " + serverName() + ".", "#2b98fd"));
     }
 
     public void onReady() {
@@ -399,12 +408,12 @@ public final class DiscordBotService {
 
     public boolean sendTestFirstJoin(Player player) {
         return sendStyledEvent(eventChannel(), config.firstJoinStyle(), player, null,
-                OnlineSnapshot.current(), EventContext.basic("first_join", "First Join", "#00D166"));
+                OnlineSnapshot.current(), EventContext.basic("first_join", "First Join", "#57F287"));
     }
 
     public boolean sendTestServerStart() {
         return sendLifecycle(config.serverStartStyle(), new LifecycleSnapshot("startup", "Server Online",
-                "This is a preview of the configured server-start style.", "#3BA55D"));
+                "This is a preview of the configured server-start style.", "#57F287"));
     }
 
     public boolean sendTestServerStop() {
@@ -414,7 +423,7 @@ public final class DiscordBotService {
 
     public boolean sendTestReload() {
         return sendLifecycle(config.reloadStyle(), new LifecycleSnapshot("reload", "DiscordPlus Reloaded",
-                "This is a preview of the configured reload style.", "#FEE75C"));
+                "This is a preview of the configured reload style.", "#2b98fd"));
     }
 
     public boolean sendStatus(MessageChannel channel) {
@@ -423,6 +432,9 @@ public final class DiscordBotService {
 
     public boolean sendBroadcast(String styleKey, String playerName, String message) {
         DiscordEventStyle style = config.broadcastStyle(styleKey);
+        if (style == null) {
+            style = config.broadcastStyle("announcement");
+        }
         if (style == null || message == null || message.isBlank()) {
             return false;
         }

@@ -204,7 +204,7 @@ public final class PlaceholderFormatter {
         public static EventContext broadcast(BroadcastSnapshot broadcastSnapshot) {
             return new EventContext("broadcast",
                     broadcastSnapshot == null ? "" : broadcastSnapshot.label(),
-                    "#FEE75C",
+                    "#f5c542",
                     null, null, null, broadcastSnapshot);
         }
     }

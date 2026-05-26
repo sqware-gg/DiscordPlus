@@ -41,7 +41,7 @@ public final class DiscordCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("discordplus.command")) {
-            message(sender, "&cNo permission.");
+            message(sender, "&#ED4245No permission.");
             return true;
         }
 
@@ -67,25 +67,25 @@ public final class DiscordCommand implements CommandExecutor, TabCompleter {
 
     private void link(CommandSender sender) {
         if (!(sender instanceof Player player)) {
-            message(sender, "&cOnly players can link accounts.");
+            message(sender, "&#ED4245Only players can link accounts.");
             return;
         }
         if (!config.linkingEnabled()) {
-            message(sender, "&cDiscord linking is disabled.");
+            message(sender, "&#ED4245Discord linking is disabled.");
             return;
         }
         if (linkManager.findByPlayer(player.getUniqueId()).isPresent()) {
-            message(sender, "&7You are already linked. Use &f/discord unlink &7first.");
+            message(sender, "&7You are already linked. Use &#2b98fd/discord unlink &7first.");
             return;
         }
         if (!botService.isReady()) {
-            message(sender, "&cDiscord is not connected yet. Try again shortly.");
+            message(sender, "&#ED4245Discord is not connected yet.");
             return;
         }
 
         LinkManager.PendingLink link = linkManager.createCode(player, config.codeExpiryMinutes());
-        message(player, "&7Your link code is &f" + link.code() + "&7.");
-        message(player, "&7In Discord, DM the bot or type &f" + config.commandPrefix() + "link " + link.code() + "&7.");
+        message(player, "&7Link code: &#2b98fd" + link.code() + "&7.");
+        message(player, "&7In Discord, DM the bot or type &#2b98fd" + config.commandPrefix() + "link " + link.code() + "&7.");
         message(player, "&7This expires in &f" + config.codeExpiryMinutes() + " minutes&7.");
     }
 
@@ -99,7 +99,7 @@ public final class DiscordCommand implements CommandExecutor, TabCompleter {
 
     private void unlink(CommandSender sender) {
         if (!(sender instanceof Player player)) {
-            message(sender, "&cOnly players can unlink accounts.");
+            message(sender, "&#ED4245Only players can unlink accounts.");
             return;
         }
         Optional<LinkedAccount> removed = linkManager.unlink(player.getUniqueId());
@@ -148,12 +148,12 @@ public final class DiscordCommand implements CommandExecutor, TabCompleter {
     private void sync(CommandSender sender, String[] args) {
         if (args.length >= 2) {
             if (!sender.hasPermission("discordplus.admin")) {
-                message(sender, "&cNo permission.");
+                message(sender, "&#ED4245No permission.");
                 return;
             }
             Player target = Bukkit.getPlayerExact(args[1]);
             if (target == null) {
-                message(sender, "&cPlayer is not online.");
+                message(sender, "&#ED4245Player is not online.");
                 return;
             }
             sendSyncResult(sender, roleSyncService.sync(target), target.getName());
@@ -161,7 +161,7 @@ public final class DiscordCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!(sender instanceof Player player)) {
-            message(sender, "&cUsage: /discord sync <player>");
+            message(sender, "&7Usage: &#2b98fd/discord sync <player>");
             return;
         }
         sendSyncResult(player, roleSyncService.sync(player), player.getName());
@@ -169,7 +169,7 @@ public final class DiscordCommand implements CommandExecutor, TabCompleter {
 
     private void test(CommandSender sender, String[] args) {
         if (!sender.hasPermission("discordplus.admin")) {
-            message(sender, "&cNo permission.");
+            message(sender, "&#ED4245No permission.");
             return;
         }
         String type = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "chat";
@@ -188,7 +188,7 @@ public final class DiscordCommand implements CommandExecutor, TabCompleter {
             case "server-stop", "stop", "offline" -> sent = botService.sendTestServerStop();
             case "reload" -> sent = botService.sendTestReload();
             default -> {
-                message(sender, "&cUnknown test type. Use: &f" + String.join("&7, &f", TEST_TYPES));
+                message(sender, "&#ED4245Unknown test type. &7Use: &f" + String.join("&7, &f", TEST_TYPES));
                 return;
             }
         }
@@ -196,36 +196,36 @@ public final class DiscordCommand implements CommandExecutor, TabCompleter {
         if (sent == null) {
             return;
         }
-        message(sender, sent ? "&7Sent Discord test: &f" + type + "&7." : "&cDiscord channel is not available for that test.");
+        message(sender, sent ? "&#57F287Discord test sent &8› &f" + type + "&7." : "&#ED4245Discord channel is not available.");
     }
 
     private void broadcast(CommandSender sender, String[] args) {
         if (!sender.hasPermission("discordplus.admin")) {
-            message(sender, "&cNo permission.");
+            message(sender, "&#ED4245No permission.");
             return;
         }
         if (args.length < 4) {
-            message(sender, "&cUsage: /discord broadcast <style> <player|-> <message>");
+            message(sender, "&7Usage: &#2b98fd/discord broadcast <style> <player|-> <message>");
             message(sender, "&7Styles: &f" + String.join("&7, &f", config.broadcastStyleKeys()));
             return;
         }
 
         String style = args[1].toLowerCase(Locale.ROOT);
         if (config.broadcastStyle(style) == null) {
-            message(sender, "&cUnknown broadcast style. Use: &f" + String.join("&7, &f", config.broadcastStyleKeys()));
+            message(sender, "&#ED4245Unknown broadcast style. &7Use: &f" + String.join("&7, &f", config.broadcastStyleKeys()));
             return;
         }
 
         String playerName = args[2];
         String broadcastMessage = joinArgs(args, 3);
         boolean sent = botService.sendBroadcast(style, playerName, broadcastMessage);
-        message(sender, sent ? "&7Sent Discord broadcast: &f" + style + "&7." : "&cDiscord event channel is not available.");
+        message(sender, sent ? "&#57F287Discord broadcast sent &8› &f" + style + "&7." : "&#ED4245Discord event channel is not available.");
     }
 
     private Boolean sendPlayerTest(CommandSender sender, PlayerTest test) {
         Player player = testPlayer(sender);
         if (player == null) {
-            message(sender, "&cPlayer-style test messages need at least one online player.");
+            message(sender, "&#ED4245Player-style tests need at least one online player.");
             return null;
         }
         return test.send(player);
@@ -240,27 +240,27 @@ public final class DiscordCommand implements CommandExecutor, TabCompleter {
 
     private void reload(CommandSender sender) {
         if (!sender.hasPermission("discordplus.admin")) {
-            message(sender, "&cNo permission.");
+            message(sender, "&#ED4245No permission.");
             return;
         }
         plugin.reloadPlugin();
-        message(sender, "&7DiscordPlus reloaded.");
+        message(sender, "&#57F287Discord reloaded.");
     }
 
     private void help(CommandSender sender) {
-        message(sender, "&7Commands: &f/discord invite&7, &f/discord link&7, &f/discord unlink&7, &f/discord status&7, &f/discord sync");
+        message(sender, "&7Commands: &#2b98fd/discord invite&7, &#2b98fd/discord link&7, &#2b98fd/discord unlink&7, &#2b98fd/discord status&7, &#2b98fd/discord sync");
         if (sender.hasPermission("discordplus.admin")) {
-            message(sender, "&7Admin: &f/discord sync <player>&7, &f/discord test [type]&7, &f/discord broadcast <style> <player|-> <message>&7, &f/discord reload");
+            message(sender, "&7Admin: &#2b98fd/discord sync <player>&7, &#2b98fd/discord test [type]&7, &#2b98fd/discord broadcast <style> <player|-> <message>&7, &#2b98fd/discord reload");
         }
     }
 
     private void sendSyncResult(CommandSender sender, SyncResult result, String playerName) {
         switch (result) {
             case QUEUED -> message(sender, "&7Queued role sync for &f" + playerName + "&7.");
-            case DISABLED -> message(sender, "&cRole sync is disabled and no linked role is configured.");
-            case NOT_LINKED -> message(sender, "&c" + playerName + " is not linked.");
-            case NO_GUILD -> message(sender, "&cDiscord guild is not available.");
-            case NO_ROLES_CONFIGURED -> message(sender, "&cNo Discord roles are configured.");
+            case DISABLED -> message(sender, "&#ED4245Role sync is disabled and no linked role is configured.");
+            case NOT_LINKED -> message(sender, "&#ED4245" + playerName + " is not linked.");
+            case NO_GUILD -> message(sender, "&#ED4245Discord guild is not available.");
+            case NO_ROLES_CONFIGURED -> message(sender, "&#ED4245No Discord roles are configured.");
         }
     }
 

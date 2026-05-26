@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ConfigReferenceWriter {
-    private static final int CURRENT_CONFIG_VERSION = 5;
+    private static final int CURRENT_CONFIG_VERSION = 15;
 
     private ConfigReferenceWriter() {
     }

@@ -138,6 +138,15 @@ public final class LinkManager {
         return findByPlayer(playerUuid);
     }
 
+    public synchronized Optional<LinkedAccount> findByPlayerName(String playerName) {
+        if (playerName == null || playerName.isBlank()) {
+            return Optional.empty();
+        }
+        return linksByPlayer.values().stream()
+                .filter(account -> account.playerName().equalsIgnoreCase(playerName))
+                .findFirst();
+    }
+
     public synchronized Optional<LinkedAccount> unlinkByDiscordId(String discordId) {
         UUID playerUuid = playerByDiscord.get(discordId);
         if (playerUuid == null) {

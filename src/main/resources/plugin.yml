@@ -5,6 +5,14 @@ api-version: '1.18'
 author: SQWARE / Conflict
 website: https://sqware.gg
 description: Discord chat, linking, and role synchronisation for Paper servers.
+softdepend:
+  - AuctionsPlus
+  - PlaytimePlus
+  - AdvancementPlus
+  - SkinsPlus
+  - Parcel
+  - ChatPlus
+  - PointsPlus
 commands:
   discord:
     description: Link Discord, check status, sync roles, or reload DiscordPlus.

@@ -36,7 +36,7 @@ As of May 2026, Paper is the supported server target. The plugin includes a lega
 - Discord chat to Minecraft.
 - Optional webhook chat mode with player-style names and avatars.
 - Account linking with `/discord link` and `!link <code>`.
-- Discord commands: `!online`, `!players`, `!link`, and `!unlink`.
+- Discord commands: `!online`, `!players`, `!link`, `!unlink`, and optional companion plugin commands.
 - Optional linked-account Discord role.
 - Permission-based role sync for Minecraft groups.
 - Join, leave, first-join, advancement, death, startup, shutdown, and reload messages.
@@ -105,9 +105,20 @@ Discord users can DM the bot or type in the configured server:
 !unlink
 !online
 !players
+!points top
+!playtime
+!playtime top active
+!ah list
+!ah bid <id> <amount>
 ```
 
 The command prefix is configurable under `linking.command-prefix`.
+PointsPlus command results reply to the original Discord message in the channel where the command was used.
+PlaytimePlus commands are available when PlaytimePlus is installed and `integrations.playtimeplus.events.commands` is enabled.
+Auctions+ bid commands are available when Auctions+ is installed and `integrations.auctionsplus.events.commands` is enabled.
+Discord auction bids require a linked Minecraft account and a verified `auctionsplus.bid` permission.
+Server owners can restrict auction commands with `integrations.auctionsplus.commands.allowed-channel-ids`,
+`require-player-online`, `cooldown-seconds`, `max-bid`, and `list-limit`.
 
 ## Permissions
 
