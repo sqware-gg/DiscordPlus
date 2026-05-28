@@ -1,7 +1,7 @@
 # DiscordPlus
 # Used for update checks.
 # Do not change unless you know what you are doing.
-config-version: 15
+config-version: 16
 
 # Main setup:
 # 1. Create a Discord bot in the Discord Developer Portal.
@@ -91,15 +91,11 @@ features:
   discord-commands: true
 
 slash-commands:
-  # Register /discord, /points, /playtime, and /auction commands with Discord.
+  # Register /discord, /points, /playtime, /auction, and /orders commands with Discord.
   enabled: true
 
   # Overwrite the command list on startup so removed/renamed commands disappear from Discord autocomplete.
   refresh-on-start: true
-
-  # When bot.guild-id is set, commands are registered to that guild for fast updates.
-  # This also clears old global commands left behind by earlier versions.
-  clear-global-commands-when-guild-set: true
 
 join-leave:
   # Do not send join/leave messages from these worlds.
@@ -245,6 +241,25 @@ integrations:
       # Maximum rows shown by !ah list and /auction list.
       list-limit: 10
 
+  ordersplus:
+    enabled: true
+    events:
+      order-created: true
+      order-fulfilled: true
+      order-cancelled: false
+      order-expired: false
+      # Enables !orders, !order, and /orders Discord commands.
+      commands: true
+    commands:
+      # If false, order commands only work inside your Discord server.
+      allow-direct-messages: false
+
+      # Optional channel allow-list for order commands. Empty means any visible server channel.
+      allowed-channel-ids: []
+
+      # Maximum rows shown by !orders list and /orders list.
+      list-limit: 10
+
   playtimeplus:
     enabled: true
     events:
@@ -292,9 +307,6 @@ integrations:
       # Enables !points, !balance, and !pay Discord commands.
       commands: true
     commands:
-      # Deprecated. Points command results reply to the original Discord message.
-      direct-message-results: false
-
       # If false, points commands only work inside your Discord server.
       allow-direct-messages: true
 
@@ -583,6 +595,70 @@ discord-style:
         title: "Auction Won"
         description: "{broadcast_message}"
         color: "#57F287"
+        footer: "{server}"
+        thumbnail-url: ""
+        image-url: ""
+        fields: []
+        timestamp: true
+
+    order-created:
+      style: "embed"
+      text: "**{broadcast_message}**"
+      embed:
+        author-name: "Orders+"
+        author-url: ""
+        author-icon-url: "{broadcast_player_avatar_url}"
+        title: "New Order"
+        description: "{broadcast_message}"
+        color: "#2b98fd"
+        footer: "{server}"
+        thumbnail-url: ""
+        image-url: ""
+        fields: []
+        timestamp: true
+
+    order-fulfilled:
+      style: "embed"
+      text: "**{broadcast_message}**"
+      embed:
+        author-name: "Orders+"
+        author-url: ""
+        author-icon-url: "{broadcast_player_avatar_url}"
+        title: "Order Fulfilled"
+        description: "{broadcast_message}"
+        color: "#57F287"
+        footer: "{server}"
+        thumbnail-url: ""
+        image-url: ""
+        fields: []
+        timestamp: true
+
+    order-cancel:
+      style: "embed"
+      text: "**{broadcast_message}**"
+      embed:
+        author-name: "Orders+"
+        author-url: ""
+        author-icon-url: "{broadcast_player_avatar_url}"
+        title: "Order Cancelled"
+        description: "{broadcast_message}"
+        color: "#ED4245"
+        footer: "{server}"
+        thumbnail-url: ""
+        image-url: ""
+        fields: []
+        timestamp: true
+
+    order-expire:
+      style: "embed"
+      text: "**{broadcast_message}**"
+      embed:
+        author-name: "Orders+"
+        author-url: ""
+        author-icon-url: "{broadcast_player_avatar_url}"
+        title: "Order Expired"
+        description: "{broadcast_message}"
+        color: "#8ecbff"
         footer: "{server}"
         thumbnail-url: ""
         image-url: ""

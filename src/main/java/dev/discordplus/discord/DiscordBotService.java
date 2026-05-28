@@ -40,6 +40,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.WebhookClient;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -52,6 +53,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 public final class DiscordBotService {
+    private static final long SHUTDOWN_TIMEOUT_SECONDS = 10L;
+    private static final long FORCED_SHUTDOWN_TIMEOUT_SECONDS = 5L;
+
     private final JavaPlugin plugin;
     private final DiscordPlusConfig config;
     private final LinkManager linkManager;
@@ -66,6 +70,7 @@ public final class DiscordBotService {
         this.plugin = plugin;
         this.config = config;
         this.linkManager = linkManager;
+        preloadJdaShutdownClasses();
     }
 
     public void start() {
@@ -177,10 +182,27 @@ public final class DiscordBotService {
 
     private void shutdownDetached(JDA current) {
         try {
+            current.shutdown();
+            if (current.awaitShutdown(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                return;
+            }
+            plugin.getLogger().fine("Discord bot did not stop gracefully in time. Forcing shutdown.");
             current.shutdownNow();
+            current.awaitShutdown(FORCED_SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            try {
+                current.shutdownNow();
+            } catch (Throwable shutdownError) {
+                plugin.getLogger().fine("Discord bot forced shutdown failed: " + shutdownError.getMessage());
+            }
         } catch (Throwable e) {
             plugin.getLogger().fine("Discord bot shutdown failed: " + e.getMessage());
         }
+    }
+
+    private void preloadJdaShutdownClasses() {
+        Class<?> ignored = ShutdownEvent.class;
     }
 
     public boolean isReady() {

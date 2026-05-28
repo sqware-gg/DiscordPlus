@@ -36,7 +36,7 @@ As of May 2026, Paper is the supported server target. The plugin includes a lega
 - Discord chat to Minecraft.
 - Optional webhook chat mode with player-style names and avatars.
 - Account linking with `/discord link` and `!link <code>`.
-- Discord commands: `!online`, `!players`, `!link`, `!unlink`, and optional companion plugin commands.
+- Discord commands: `!online`, `!players`, `!link`, `!unlink`, and optional companion plugin commands for Points+, Playtime+, Auctions+, and Orders+.
 - Optional linked-account Discord role.
 - Permission-based role sync for Minecraft groups.
 - Join, leave, first-join, advancement, death, startup, shutdown, and reload messages.

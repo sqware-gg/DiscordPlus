@@ -45,6 +45,15 @@ public final class PluginIntegrationListener implements Listener {
         registerIf("AuctionsPlus", "dev.auctionsplus.api.event.AuctionListingExpiredEvent",
                 config.integrationEnabled("auctionsplus", "listing-expired"), this::auctionExpired);
 
+        registerIf("OrdersPlus", "dev.ordersplus.api.event.OrderCreatedEvent",
+                config.integrationEnabled("ordersplus", "order-created"), this::orderCreated);
+        registerIf("OrdersPlus", "dev.ordersplus.api.event.OrderFulfilledEvent",
+                config.integrationEnabled("ordersplus", "order-fulfilled"), this::orderFulfilled);
+        registerIf("OrdersPlus", "dev.ordersplus.api.event.OrderCancelledEvent",
+                config.integrationEnabled("ordersplus", "order-cancelled"), this::orderCancelled);
+        registerIf("OrdersPlus", "dev.ordersplus.api.event.OrderExpiredEvent",
+                config.integrationEnabled("ordersplus", "order-expired"), this::orderExpired);
+
         registerIf("PlaytimePlus", "dev.playtimeplus.api.event.PlaytimeAfkStateChangeEvent",
                 config.integrationEnabled("playtimeplus", "afk"), this::playtimeAfk);
         registerIf("PlaytimePlus", "dev.playtimeplus.api.event.PlaytimeRewardClaimEvent",
@@ -156,6 +165,51 @@ public final class PluginIntegrationListener implements Listener {
         botService.sendBroadcast("auction-expire", string(event, "sellerName"),
                 string(event, "sellerName") + "'s auction for " + string(event, "itemName")
                         + " expired at " + string(event, "formattedPrice") + ".");
+    }
+
+    private void orderCreated(Event event) {
+        if (!config.integrationEnabled("ordersplus", "order-created")) {
+            return;
+        }
+        botService.sendBroadcast("order-created", string(event, "buyerName"),
+                string(event, "buyerName") + " created order #" + string(event, "orderId")
+                        + " for " + string(event, "amount") + "x " + string(event, "materialName")
+                        + " at " + string(event, "formattedPriceEach") + " each ("
+                        + string(event, "formattedTotal") + " total).");
+    }
+
+    private void orderFulfilled(Event event) {
+        if (!config.integrationEnabled("ordersplus", "order-fulfilled")) {
+            return;
+        }
+        String completion = bool(event, "completed") ? " and completed the order" : "";
+        botService.sendBroadcast("order-fulfilled", string(event, "fulfillerName"),
+                string(event, "fulfillerName") + " fulfilled " + string(event, "amount")
+                        + "x " + string(event, "materialName") + " for "
+                        + string(event, "buyerName") + completion + " ("
+                        + string(event, "formattedPayout") + ").");
+    }
+
+    private void orderCancelled(Event event) {
+        if (!config.integrationEnabled("ordersplus", "order-cancelled")) {
+            return;
+        }
+        botService.sendBroadcast("order-cancel", string(event, "buyerName"),
+                "Order #" + string(event, "orderId") + " for "
+                        + string(event, "remainingAmount") + "x " + string(event, "materialName")
+                        + " was cancelled by " + string(event, "cancelledByName")
+                        + ". Refunded " + string(event, "formattedRefund") + ".");
+    }
+
+    private void orderExpired(Event event) {
+        if (!config.integrationEnabled("ordersplus", "order-expired")) {
+            return;
+        }
+        botService.sendBroadcast("order-expire", string(event, "buyerName"),
+                string(event, "buyerName") + "'s order #" + string(event, "orderId")
+                        + " for " + string(event, "remainingAmount") + "x "
+                        + string(event, "materialName") + " expired. Refunded "
+                        + string(event, "formattedRefund") + ".");
     }
 
     private void playtimeAfk(Event event) {

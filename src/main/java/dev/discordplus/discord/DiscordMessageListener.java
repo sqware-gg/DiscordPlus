@@ -5,6 +5,7 @@ import dev.discordplus.config.DiscordPlusConfig;
 import dev.discordplus.link.LinkedAccount;
 import dev.discordplus.link.LinkManager;
 import dev.discordplus.link.LinkManager.PendingLink;
+import dev.discordplus.orders.OrdersPlusDiscordCommands;
 import dev.discordplus.playtime.PlaytimePlusDiscordCommands;
 import dev.discordplus.points.PointsPlusDiscordCommands;
 import dev.discordplus.roles.RoleSyncService;
@@ -35,6 +36,7 @@ public final class DiscordMessageListener extends ListenerAdapter {
     private final LinkManager linkManager;
     private final RoleSyncService roleSyncService;
     private final AuctionsPlusDiscordCommands auctionsPlusCommands;
+    private final OrdersPlusDiscordCommands ordersPlusCommands;
     private final PointsPlusDiscordCommands pointsPlusCommands;
     private final PlaytimePlusDiscordCommands playtimePlusCommands;
 
@@ -46,6 +48,7 @@ public final class DiscordMessageListener extends ListenerAdapter {
         this.linkManager = linkManager;
         this.roleSyncService = roleSyncService;
         this.auctionsPlusCommands = new AuctionsPlusDiscordCommands(plugin, config, linkManager);
+        this.ordersPlusCommands = new OrdersPlusDiscordCommands(plugin, config);
         this.pointsPlusCommands = new PointsPlusDiscordCommands(plugin, config, linkManager);
         this.playtimePlusCommands = new PlaytimePlusDiscordCommands(plugin, config, linkManager);
     }
@@ -86,6 +89,9 @@ public final class DiscordMessageListener extends ListenerAdapter {
             return;
         }
         if (config.discordCommands() && auctionsPlusCommands.handle(event, raw)) {
+            return;
+        }
+        if (config.discordCommands() && ordersPlusCommands.handle(event, raw)) {
             return;
         }
 
@@ -135,6 +141,10 @@ public final class DiscordMessageListener extends ListenerAdapter {
             auctionsPlusCommands.handleSlash(event);
             return;
         }
+        if ("orders".equals(event.getName())) {
+            ordersPlusCommands.handleSlash(event);
+            return;
+        }
         if (!"discord".equals(event.getName())) {
             return;
         }
@@ -179,11 +189,6 @@ public final class DiscordMessageListener extends ListenerAdapter {
             guild.updateCommands().addCommands(commands).queue(
                     updated -> plugin.getLogger().info("Refreshed " + updated.size() + " Discord guild slash commands."),
                     error -> plugin.getLogger().warning("Could not refresh Discord guild slash commands: " + error.getMessage()));
-            if (config.clearGlobalCommandsWhenGuildSet()) {
-                event.getJDA().updateCommands().queue(
-                        ignored -> plugin.getLogger().info("Cleared global Discord slash commands."),
-                        error -> plugin.getLogger().warning("Could not clear global Discord slash commands: " + error.getMessage()));
-            }
             return;
         }
 
@@ -253,6 +258,18 @@ public final class DiscordMessageListener extends ListenerAdapter {
                                             new OptionData(OptionType.INTEGER, "id", "Auction listing ID", true)
                                                     .setMinValue(1),
                                             new OptionData(OptionType.STRING, "amount", "Bid amount, such as 500 or 1.5k", true)
+                                    )
+                    ));
+        }
+        if (config.ordersPlusCommandsEnabled()) {
+            DiscordPlusConfig.OrdersPlusCommandSettings orderSettings = config.ordersPlusCommandSettings();
+            commands.add(Commands.slash("orders", "Orders+ market commands")
+                    .addSubcommands(
+                            new SubcommandData("list", "List active Orders+ buy orders")
+                                    .addOptions(
+                                            new OptionData(OptionType.STRING, "search", "Item, buyer, or order ID", false),
+                                            new OptionData(OptionType.INTEGER, "limit", "Rows to show", false)
+                                                    .setRequiredRange(1, orderSettings.listLimit())
                                     )
                     ));
         }

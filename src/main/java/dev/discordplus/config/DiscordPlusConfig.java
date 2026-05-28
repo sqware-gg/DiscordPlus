@@ -31,7 +31,6 @@ public final class DiscordPlusConfig {
     private boolean discordCommands;
     private boolean slashCommandsEnabled;
     private boolean slashCommandsRefreshOnStart;
-    private boolean clearGlobalCommandsWhenGuildSet;
     private boolean integrationsEnabled;
     private boolean linkingEnabled;
     private String commandPrefix;
@@ -60,6 +59,7 @@ public final class DiscordPlusConfig {
     private Map<String, DiscordEventStyle> broadcastStyles;
     private Map<String, IntegrationSettings> integrations;
     private AuctionsPlusCommandSettings auctionsPlusCommandSettings;
+    private OrdersPlusCommandSettings ordersPlusCommandSettings;
     private PointsPlusCommandSettings pointsPlusCommandSettings;
     private PlaytimePlusCommandSettings playtimePlusCommandSettings;
     private String discordToMinecraftFormat;
@@ -90,7 +90,6 @@ public final class DiscordPlusConfig {
         discordCommands = plugin.getConfig().getBoolean("features.discord-commands", true);
         slashCommandsEnabled = plugin.getConfig().getBoolean("slash-commands.enabled", true);
         slashCommandsRefreshOnStart = plugin.getConfig().getBoolean("slash-commands.refresh-on-start", true);
-        clearGlobalCommandsWhenGuildSet = plugin.getConfig().getBoolean("slash-commands.clear-global-commands-when-guild-set", true);
         integrationsEnabled = plugin.getConfig().contains("integrations.enabled")
                 && plugin.getConfig().getBoolean("integrations.enabled", true);
         linkingEnabled = plugin.getConfig().getBoolean("linking.enabled", true);
@@ -140,6 +139,7 @@ public final class DiscordPlusConfig {
         broadcastStyles = readBroadcastStyles();
         integrations = readIntegrations();
         auctionsPlusCommandSettings = readAuctionsPlusCommandSettings();
+        ordersPlusCommandSettings = readOrdersPlusCommandSettings();
         pointsPlusCommandSettings = readPointsPlusCommandSettings();
         playtimePlusCommandSettings = readPlaytimePlusCommandSettings();
         discordToMinecraftFormat = readString("minecraft-style.discord-chat", readString("format.discord-to-minecraft", "&#2b98fdDiscord &8› &f{user}&8: &7{message}"));
@@ -388,6 +388,10 @@ public final class DiscordPlusConfig {
                 "auction-won",
                 "auction-cancel",
                 "auction-expire",
+                "order-created",
+                "order-fulfilled",
+                "order-cancel",
+                "order-expire",
                 "playtime-afk",
                 "playtime-reward",
                 "advancementplus-progress",
@@ -425,6 +429,13 @@ public final class DiscordPlusConfig {
                 "auction-won", true,
                 "listing-cancelled", false,
                 "listing-expired", false,
+                "commands", true
+        ))));
+        values.put("ordersplus", readIntegration("ordersplus", defaults(Map.of(
+                "order-created", true,
+                "order-fulfilled", true,
+                "order-cancelled", false,
+                "order-expired", false,
                 "commands", true
         ))));
         values.put("playtimeplus", readIntegration("playtimeplus", defaults(Map.of(
@@ -465,10 +476,18 @@ public final class DiscordPlusConfig {
         );
     }
 
+    private OrdersPlusCommandSettings readOrdersPlusCommandSettings() {
+        String path = "integrations.ordersplus.commands";
+        return new OrdersPlusCommandSettings(
+                plugin.getConfig().getBoolean(path + ".allow-direct-messages", false),
+                readStringList(path + ".allowed-channel-ids", List.of()),
+                Math.max(1, Math.min(25, plugin.getConfig().getInt(path + ".list-limit", 10)))
+        );
+    }
+
     private PointsPlusCommandSettings readPointsPlusCommandSettings() {
         String path = "integrations.pointsplus.commands";
         return new PointsPlusCommandSettings(
-                plugin.getConfig().getBoolean(path + ".direct-message-results", false),
                 plugin.getConfig().getBoolean(path + ".allow-direct-messages", true),
                 readStringList(path + ".allowed-channel-ids", List.of()),
                 plugin.getConfig().getBoolean(path + ".require-linked-targets", true),
@@ -679,6 +698,11 @@ public final class DiscordPlusConfig {
                 plugin.getLogger().warning("integrations.auctionsplus.commands.allowed-channel-ids contains an invalid Discord channel ID.");
             }
         }
+        for (String channelId : ordersPlusCommandSettings.allowedChannelIds()) {
+            if (!isSnowflake(channelId)) {
+                plugin.getLogger().warning("integrations.ordersplus.commands.allowed-channel-ids contains an invalid Discord channel ID.");
+            }
+        }
         for (String channelId : playtimePlusCommandSettings.allowedChannelIds()) {
             if (!isSnowflake(channelId)) {
                 plugin.getLogger().warning("integrations.playtimeplus.commands.allowed-channel-ids contains an invalid Discord channel ID.");
@@ -771,10 +795,6 @@ public final class DiscordPlusConfig {
         return slashCommandsRefreshOnStart;
     }
 
-    public boolean clearGlobalCommandsWhenGuildSet() {
-        return clearGlobalCommandsWhenGuildSet;
-    }
-
     public boolean integrationEnabled(String integrationKey, String eventKey) {
         if (!integrationsEnabled) {
             return false;
@@ -792,8 +812,16 @@ public final class DiscordPlusConfig {
         return integrationEnabled("auctionsplus", "commands");
     }
 
+    public boolean ordersPlusCommandsEnabled() {
+        return integrationEnabled("ordersplus", "commands");
+    }
+
     public AuctionsPlusCommandSettings auctionsPlusCommandSettings() {
         return auctionsPlusCommandSettings;
+    }
+
+    public OrdersPlusCommandSettings ordersPlusCommandSettings() {
+        return ordersPlusCommandSettings;
     }
 
     public PointsPlusCommandSettings pointsPlusCommandSettings() {
@@ -934,8 +962,15 @@ public final class DiscordPlusConfig {
         }
     }
 
-    public record PointsPlusCommandSettings(boolean directMessageResults, boolean allowDirectMessages,
-                                            List<String> allowedChannelIds, boolean requireLinkedTargets,
+    public record OrdersPlusCommandSettings(boolean allowDirectMessages, List<String> allowedChannelIds,
+                                            int listLimit) {
+        public boolean allowsChannel(String channelId) {
+            return allowedChannelIds.isEmpty() || allowedChannelIds.contains(channelId);
+        }
+    }
+
+    public record PointsPlusCommandSettings(boolean allowDirectMessages, List<String> allowedChannelIds,
+                                            boolean requireLinkedTargets,
                                             long maxPayment, int topLimit) {
         public boolean allowsChannel(String channelId) {
             return allowedChannelIds.isEmpty() || allowedChannelIds.contains(channelId);
