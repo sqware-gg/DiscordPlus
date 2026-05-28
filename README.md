@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/sqware-gg/DiscordPlus/actions/workflows/build.yml/badge.svg)](https://github.com/sqware-gg/DiscordPlus/actions/workflows/build.yml)
 
-**Get the plugin jar, setup help, and updates in the SQWARE Discord: [discord.sqware.gg](https://discord.sqware.gg).**
+**Join the SQWARE Discord: [discord.sqware.gg](https://discord.sqware.gg).**
 
 DiscordPlus is a DiscordSRV-style Minecraft Discord bridge for Paper servers. It connects Minecraft chat, Discord chat, server events, account linking, player status commands, Discord role sync, and companion plugin commands in one configurable plugin.
 
