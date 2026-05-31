@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## Unreleased
+
+### Added
+
+- Optional ChatPlus interactive placeholder relay for shared items, inventories, and ender chests in Minecraft-to-Discord chat.
+
 ## 0.1.0 - 2026-05-25
 
 Initial public release.

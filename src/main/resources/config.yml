@@ -1,7 +1,7 @@
 # DiscordPlus
 # Used for update checks.
 # Do not change unless you know what you are doing.
-config-version: 16
+config-version: 17
 
 # Main setup:
 # 1. Create a Discord bot in the Discord Developer Portal.
@@ -298,6 +298,9 @@ integrations:
 
   chatplus:
     enabled: true
+    # If ChatPlus is installed, relay [item], [inventory], and [ender] style
+    # placeholders to Discord using ChatPlus' Discord-safe rendering API.
+    interactive-placeholders: true
     events:
       broadcast: true
 

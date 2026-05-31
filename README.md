@@ -15,6 +15,7 @@ Use it when you want a Discord bridge that also understands SQWARE plugins such 
 - Optional webhook chat with player-style names and avatars.
 - Account linking with `/discord link` and `!link <code>`.
 - Discord commands for online players, linked accounts, points, playtime, auctions, and orders.
+- ChatPlus interactive placeholder support for relaying shared items, inventories, and ender chests to Discord.
 - Permission-based Discord role sync.
 - Optional linked-account Discord role.
 - Join, quit, first-join, advancement, death, startup, shutdown, reload, purchase, and announcement messages.
@@ -103,6 +104,12 @@ role-sync:
 ```
 
 DiscordPlus only manages configured mapped roles and the optional linked role. It does not touch unrelated Discord roles.
+
+## ChatPlus
+
+When ChatPlus is installed, DiscordPlus uses `ChatPlusApi.renderDiscordChat(...)` for Minecraft-to-Discord chat relay. Messages containing ChatPlus placeholders such as `[item]`, `[inv]`, or `[ender]` are sent to Discord with readable item and inventory summaries.
+
+This is controlled by `integrations.chatplus.interactive-placeholders` in `config.yml`.
 
 ## Build
 

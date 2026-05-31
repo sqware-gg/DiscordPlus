@@ -35,7 +35,8 @@ public final class ChatBridgeListener implements Listener {
         if (!legacyChatEnabled || !config.minecraftToDiscord()) {
             return;
         }
-        botService.sendMinecraftChat(event.getPlayer(), event.getMessage());
+        botService.sendMinecraftChat(event.getPlayer(), ChatPlusCompatibility.renderDiscordMessage(
+                config, event.getPlayer(), event.getMessage(), event.getMessage()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

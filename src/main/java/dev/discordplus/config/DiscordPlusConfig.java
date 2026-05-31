@@ -58,6 +58,7 @@ public final class DiscordPlusConfig {
     private DiscordEventStyle statusStyle;
     private Map<String, DiscordEventStyle> broadcastStyles;
     private Map<String, IntegrationSettings> integrations;
+    private boolean chatPlusInteractivePlaceholders;
     private AuctionsPlusCommandSettings auctionsPlusCommandSettings;
     private OrdersPlusCommandSettings ordersPlusCommandSettings;
     private PointsPlusCommandSettings pointsPlusCommandSettings;
@@ -138,6 +139,7 @@ public final class DiscordPlusConfig {
                 "embed", defaultStatusEmbed());
         broadcastStyles = readBroadcastStyles();
         integrations = readIntegrations();
+        chatPlusInteractivePlaceholders = plugin.getConfig().getBoolean("integrations.chatplus.interactive-placeholders", true);
         auctionsPlusCommandSettings = readAuctionsPlusCommandSettings();
         ordersPlusCommandSettings = readOrdersPlusCommandSettings();
         pointsPlusCommandSettings = readPointsPlusCommandSettings();
@@ -830,6 +832,10 @@ public final class DiscordPlusConfig {
 
     public boolean playtimePlusCommandsEnabled() {
         return integrationEnabled("playtimeplus", "commands");
+    }
+
+    public boolean chatPlusInteractivePlaceholders() {
+        return chatPlusInteractivePlaceholders;
     }
 
     public PlaytimePlusCommandSettings playtimePlusCommandSettings() {
