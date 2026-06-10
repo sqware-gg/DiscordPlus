@@ -10,6 +10,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DiscordPlusConfig {
+    private static final String DEFAULT_CHATPLUS_ITEM_THUMBNAIL_URL =
+            "https://cdn.jsdelivr.net/gh/themuhamed/mcicons@main/public/icons/minecraft_{image_key}.png";
+
     private final JavaPlugin plugin;
 
     private String botToken;
@@ -59,6 +62,7 @@ public final class DiscordPlusConfig {
     private Map<String, DiscordEventStyle> broadcastStyles;
     private Map<String, IntegrationSettings> integrations;
     private boolean chatPlusInteractivePlaceholders;
+    private ChatPlusItemPreviewSettings chatPlusItemPreviewSettings;
     private AuctionsPlusCommandSettings auctionsPlusCommandSettings;
     private OrdersPlusCommandSettings ordersPlusCommandSettings;
     private PointsPlusCommandSettings pointsPlusCommandSettings;
@@ -140,6 +144,7 @@ public final class DiscordPlusConfig {
         broadcastStyles = readBroadcastStyles();
         integrations = readIntegrations();
         chatPlusInteractivePlaceholders = plugin.getConfig().getBoolean("integrations.chatplus.interactive-placeholders", true);
+        chatPlusItemPreviewSettings = readChatPlusItemPreviewSettings();
         auctionsPlusCommandSettings = readAuctionsPlusCommandSettings();
         ordersPlusCommandSettings = readOrdersPlusCommandSettings();
         pointsPlusCommandSettings = readPointsPlusCommandSettings();
@@ -523,6 +528,23 @@ public final class DiscordPlusConfig {
         return new IntegrationSettings(enabled, Map.copyOf(events));
     }
 
+    private ChatPlusItemPreviewSettings readChatPlusItemPreviewSettings() {
+        String base = "integrations.chatplus.item-previews.";
+        return new ChatPlusItemPreviewSettings(
+                plugin.getConfig().getBoolean(base + "enabled", true),
+                Math.max(0, Math.min(10, plugin.getConfig().getInt(base + "max-per-message", 2))),
+                plugin.getConfig().getBoolean(base + "generated-image", false),
+                readString(base + "thumbnail-url-template", DEFAULT_CHATPLUS_ITEM_THUMBNAIL_URL),
+                readString(base + "title", ""),
+                readString(base + "color", "#57F287"),
+                readString(base + "footer", ""),
+                plugin.getConfig().getBoolean(base + "include-enchantments", true),
+                plugin.getConfig().getBoolean(base + "include-lore", true),
+                plugin.getConfig().getBoolean(base + "include-durability", true),
+                plugin.getConfig().getBoolean(base + "include-custom-model-data", false)
+        );
+    }
+
     private Map<String, Boolean> defaults(Map<String, Boolean> values) {
         return new LinkedHashMap<>(values);
     }
@@ -838,6 +860,10 @@ public final class DiscordPlusConfig {
         return chatPlusInteractivePlaceholders;
     }
 
+    public ChatPlusItemPreviewSettings chatPlusItemPreviewSettings() {
+        return chatPlusItemPreviewSettings;
+    }
+
     public PlaytimePlusCommandSettings playtimePlusCommandSettings() {
         return playtimePlusCommandSettings;
     }
@@ -958,6 +984,21 @@ public final class DiscordPlusConfig {
     }
 
     public record IntegrationSettings(boolean enabled, Map<String, Boolean> events) {
+    }
+
+    public record ChatPlusItemPreviewSettings(
+            boolean enabled,
+            int maxPerMessage,
+            boolean generatedImage,
+            String thumbnailUrlTemplate,
+            String title,
+            String color,
+            String footer,
+            boolean includeEnchantments,
+            boolean includeLore,
+            boolean includeDurability,
+            boolean includeCustomModelData
+    ) {
     }
 
     public record AuctionsPlusCommandSettings(boolean allowDirectMessages, List<String> allowedChannelIds,

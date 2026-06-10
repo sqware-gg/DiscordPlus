@@ -1,7 +1,7 @@
 # DiscordPlus
 # Used for update checks.
 # Do not change unless you know what you are doing.
-config-version: 17
+config-version: 19
 
 # Main setup:
 # 1. Create a Discord bot in the Discord Developer Portal.
@@ -301,6 +301,26 @@ integrations:
     # If ChatPlus is installed, relay [item], [inventory], and [ender] style
     # placeholders to Discord using ChatPlus' Discord-safe rendering API.
     interactive-placeholders: true
+    item-previews:
+      # Adds compact Discord embeds for ChatPlus [item] shares.
+      enabled: true
+      # Discord allows up to 10 embeds, but keeping this low protects busy chat channels.
+      max-per-message: 2
+      # Legacy fallback. If true and thumbnail-url-template is blank, DiscordPlus uses
+      # the vanilla icon CDN template below instead of the old generated card.
+      generated-image: false
+      # Optional URL template for item thumbnails. Placeholders: {material}, {material_key},
+      # {image_key}, {item}, {player}, {amount}, {custom_model_data}
+      # The default works for vanilla base materials. Resource-pack/custom-model textures
+      # need your own hosted render endpoint.
+      thumbnail-url-template: "https://cdn.jsdelivr.net/gh/themuhamed/mcicons@main/public/icons/minecraft_{image_key}.png"
+      title: ""
+      color: "#57F287"
+      footer: ""
+      include-enchantments: true
+      include-lore: true
+      include-durability: true
+      include-custom-model-data: false
     events:
       broadcast: true
 

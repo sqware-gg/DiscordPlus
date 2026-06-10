@@ -24,7 +24,7 @@ public final class PaperChatBridgeListener implements Listener {
         }
         String renderedMessage = PlainTextComponentSerializer.plainText().serialize(event.message());
         String originalMessage = PlainTextComponentSerializer.plainText().serialize(event.originalMessage());
-        botService.sendMinecraftChat(event.getPlayer(), ChatPlusCompatibility.renderDiscordMessage(
+        botService.sendMinecraftChat(event.getPlayer(), ChatPlusCompatibility.renderDiscordMessageRich(
                 config, event.getPlayer(), originalMessage, renderedMessage));
     }
 }

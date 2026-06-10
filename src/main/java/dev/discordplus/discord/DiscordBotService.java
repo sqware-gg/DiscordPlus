@@ -3,12 +3,14 @@ package dev.discordplus.discord;
 import dev.discordplus.config.DiscordPlusConfig;
 import dev.discordplus.config.DiscordPlusConfig.AdvancementSettings;
 import dev.discordplus.config.DiscordPlusConfig.ActivityStyle;
+import dev.discordplus.config.DiscordPlusConfig.ChatPlusItemPreviewSettings;
 import dev.discordplus.config.DiscordPlusConfig.DeathSettings;
 import dev.discordplus.config.DiscordPlusConfig.DiscordEventStyle;
 import dev.discordplus.config.DiscordPlusConfig.EmbedField;
 import dev.discordplus.config.DiscordPlusConfig.EmbedStyle;
 import dev.discordplus.config.DiscordPlusConfig.LifecycleSettings;
 import dev.discordplus.config.DiscordPlusConfig.MinecraftChatStyle;
+import dev.discordplus.chat.DiscordRelayMessage;
 import dev.discordplus.link.LinkManager;
 import dev.discordplus.roles.RoleSyncService;
 import dev.discordplus.util.PlaceholderFormatter;
@@ -21,7 +23,10 @@ import dev.discordplus.util.PlaceholderFormatter.OnlineSnapshot;
 import dev.discordplus.util.TextSanitizer;
 import io.papermc.paper.advancement.AdvancementDisplay;
 import java.awt.Color;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -55,6 +60,8 @@ import org.bukkit.scheduler.BukkitTask;
 public final class DiscordBotService {
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 10L;
     private static final long FORCED_SHUTDOWN_TIMEOUT_SECONDS = 5L;
+    private static final String VANILLA_ITEM_ICON_URL =
+            "https://cdn.jsdelivr.net/gh/themuhamed/mcicons@main/public/icons/minecraft_{image_key}.png";
 
     private final JavaPlugin plugin;
     private final DiscordPlusConfig config;
@@ -274,11 +281,22 @@ public final class DiscordBotService {
     }
 
     public boolean sendMinecraftChat(Player player, String rawMessage) {
+        return sendMinecraftChat(player, DiscordRelayMessage.plain(rawMessage));
+    }
+
+    public boolean sendMinecraftChat(Player player, DiscordRelayMessage relayMessage) {
+        relayMessage = relayMessage == null ? DiscordRelayMessage.plain("") : relayMessage;
+        String rawMessage = relayMessage.content();
         MinecraftChatStyle style = config.minecraftChatStyle();
         String content = PlaceholderFormatter.discord(style.content(), plugin, config, player, rawMessage);
         if (content.isBlank()) {
             return false;
         }
+
+        ChatPlusItemPreviewSettings previewSettings = config.chatPlusItemPreviewSettings();
+        List<MessageEmbed> embeds = previewSettings.enabled() && relayMessage.hasItemPreviews()
+                ? buildItemPreviewEmbeds(player, relayMessage.itemPreviews(), previewSettings)
+                : List.of();
 
         JDA current = jda;
         if (style.useWebhook() && !style.webhookUrl().isBlank() && current != null) {
@@ -290,6 +308,9 @@ public final class DiscordBotService {
                 if (!avatarUrl.isBlank()) {
                     action.setAvatarUrl(avatarUrl);
                 }
+                if (!embeds.isEmpty()) {
+                    action.addEmbeds(embeds);
+                }
                 action.queue(null, error -> plugin.getLogger().fine("Could not send Discord webhook message: " + error.getMessage()));
                 return true;
             } catch (RuntimeException e) {
@@ -297,7 +318,143 @@ public final class DiscordBotService {
             }
         }
 
-        return sendChatMessage(content);
+        TextChannel channel = chatChannel();
+        if (channel == null) {
+            return false;
+        }
+        var action = channel.sendMessage(TextSanitizer.truncate(content, 1900));
+        if (!embeds.isEmpty()) {
+            action.addEmbeds(embeds);
+        }
+        action.queue(null, error -> plugin.getLogger().fine("Could not send Discord message: " + error.getMessage()));
+        return true;
+    }
+
+    private List<MessageEmbed> buildItemPreviewEmbeds(
+            Player player,
+            List<DiscordRelayMessage.ItemPreview> previews,
+            ChatPlusItemPreviewSettings settings
+    ) {
+        if (previews == null || previews.isEmpty() || settings.maxPerMessage() <= 0) {
+            return List.of();
+        }
+        List<MessageEmbed> embeds = new ArrayList<>();
+        Color accent = parseColor(settings.color());
+        int limit = Math.min(settings.maxPerMessage(), previews.size());
+        for (int index = 0; index < limit; index++) {
+            DiscordRelayMessage.ItemPreview item = previews.get(index);
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.setColor(accent);
+            String title = itemTemplate(settings.title(), player, item);
+            if (!title.isBlank()) {
+                embed.setTitle(TextSanitizer.truncate(title, 256));
+            }
+            String description = itemDescription(item, settings);
+            if (!description.isBlank()) {
+                embed.setDescription(TextSanitizer.truncate(description, 4096));
+            }
+            String footer = itemTemplate(settings.footer(), player, item);
+            if (!footer.isBlank()) {
+                embed.setFooter(TextSanitizer.truncate(footer, 2048));
+            }
+            String thumbnail = itemThumbnail(settings, player, item);
+            if (!thumbnail.isBlank()) {
+                try {
+                    embed.setThumbnail(thumbnail);
+                } catch (IllegalArgumentException ignored) {
+                    plugin.getLogger().fine("Ignoring invalid ChatPlus item preview thumbnail URL: " + thumbnail);
+                }
+            }
+            if (!embed.isEmpty()) {
+                embeds.add(embed.build());
+            }
+        }
+        return List.copyOf(embeds);
+    }
+
+    private String itemDescription(DiscordRelayMessage.ItemPreview item, ChatPlusItemPreviewSettings settings) {
+        List<String> lines = new ArrayList<>();
+        if (item.amount() > 1) {
+            lines.add("**Amount:** " + item.amount());
+        }
+        if (settings.includeCustomModelData() && item.customModelData() > 0) {
+            lines.add("**Custom model data:** `" + item.customModelData() + "`");
+        }
+        String durability = TextSanitizer.stripMinecraftColor(item.durability());
+        if (settings.includeDurability() && !durability.isBlank()) {
+            lines.add(formatLabelValue(durability));
+        }
+        if (settings.includeEnchantments() && !item.enchantments().isEmpty()) {
+            lines.add("**Enchantments:** " + joinedPreviewLines(item.enchantments(), 8));
+        }
+        if (settings.includeLore() && !item.lore().isEmpty()) {
+            lines.add("**Lore:**");
+            for (String lore : item.lore().stream().limit(8).toList()) {
+                String line = discordItemValue(lore);
+                if (!line.isBlank()) {
+                    lines.add("> " + line);
+                }
+            }
+        }
+        return String.join("\n", lines);
+    }
+
+    private String formatLabelValue(String value) {
+        int separator = value.indexOf(':');
+        if (separator <= 0 || separator + 1 >= value.length()) {
+            return discordItemValue(value);
+        }
+        String label = discordItemValue(value.substring(0, separator));
+        String detail = discordItemValue(value.substring(separator + 1).trim());
+        if (label.isBlank() || detail.isBlank()) {
+            return discordItemValue(value);
+        }
+        return "**" + label + ":** " + detail;
+    }
+
+    private String joinedPreviewLines(List<String> lines, int limit) {
+        List<String> values = new ArrayList<>();
+        for (String line : lines.stream().limit(limit).toList()) {
+            String value = discordItemValue(line);
+            if (!value.isBlank()) {
+                values.add(value);
+            }
+        }
+        return values.isEmpty() ? "None" : String.join(", ", values);
+    }
+
+    private String itemTemplate(String template, Player player, DiscordRelayMessage.ItemPreview item) {
+        String value = template == null ? "" : template;
+        String playerName = player == null ? item.ownerName() : player.getName();
+        return value.replace("{player}", playerName == null ? "" : playerName)
+                .replace("{item}", discordItemValue(item.name()))
+                .replace("{name}", discordItemValue(item.name()))
+                .replace("{amount}", String.valueOf(item.amount()))
+                .replace("{material}", discordItemValue(item.materialName()))
+                .replace("{material_key}", discordItemValue(item.materialKey()))
+                .replace("{material-key}", discordItemValue(item.materialKey()))
+                .replace("{image_key}", urlEncode(item.imageKey()))
+                .replace("{image-key}", urlEncode(item.imageKey()))
+                .replace("{hand}", discordItemValue(item.hand()))
+                .replace("{placeholder}", discordItemValue(item.placeholder()))
+                .replace("{custom_model_data}", String.valueOf(item.customModelData()))
+                .replace("{custom-model-data}", String.valueOf(item.customModelData()));
+    }
+
+    private String itemThumbnail(ChatPlusItemPreviewSettings settings, Player player, DiscordRelayMessage.ItemPreview item) {
+        String thumbnail = itemTemplate(settings.thumbnailUrlTemplate(), player, item);
+        if (thumbnail.isBlank() && settings.generatedImage()) {
+            thumbnail = itemTemplate(VANILLA_ITEM_ICON_URL, player, item);
+        }
+        return thumbnail;
+    }
+
+    private String discordItemValue(String value) {
+        return TextSanitizer.safeDiscord(value == null ? "" : value);
+    }
+
+    private String urlEncode(String value) {
+        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }
 
     public boolean sendJoin(Player player) {
