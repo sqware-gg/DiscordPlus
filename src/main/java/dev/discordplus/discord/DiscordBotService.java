@@ -727,19 +727,19 @@ public final class DiscordBotService {
 
         if (!authorName.isBlank()) {
             try {
-                embed.setAuthor(TextSanitizer.truncate(authorName, 256),
+                embed.setAuthor(discordEmbedText(authorName, 256),
                         authorUrl.isBlank() ? null : authorUrl,
                         authorIconUrl.isBlank() ? null : authorIconUrl);
             } catch (IllegalArgumentException ignored) {
                 plugin.getLogger().warning("Ignoring invalid Discord embed author URL for: " + authorName);
-                embed.setAuthor(TextSanitizer.truncate(authorName, 256));
+                embed.setAuthor(discordEmbedText(authorName, 256));
             }
         }
         if (!title.isBlank()) {
-            embed.setTitle(TextSanitizer.truncate(title, 256));
+            embed.setTitle(discordEmbedText(title, 256));
         }
         if (!description.isBlank()) {
-            embed.setDescription(TextSanitizer.truncate(description, 4096));
+            embed.setDescription(discordEmbedText(description, 4096));
         }
         int fieldCount = 0;
         for (EmbedField field : style.fields()) {
@@ -751,12 +751,12 @@ public final class DiscordBotService {
             String value = PlaceholderFormatter.raw(field.value(), plugin, config, player, message,
                     onlineSnapshot, eventContext);
             if (!name.isBlank() && !value.isBlank()) {
-                embed.addField(TextSanitizer.truncate(name, 256), TextSanitizer.truncate(value, 1024), field.inline());
+                embed.addField(discordEmbedText(name, 256), discordEmbedText(value, 1024), field.inline());
                 fieldCount++;
             }
         }
         if (!footer.isBlank()) {
-            embed.setFooter(TextSanitizer.truncate(footer, 2048));
+            embed.setFooter(discordEmbedText(footer, 2048));
         }
         if (!thumbnail.isBlank()) {
             try {
@@ -781,6 +781,11 @@ public final class DiscordBotService {
             return null;
         }
         return embed.build();
+    }
+
+    private String discordEmbedText(String value, int maxLength) {
+        String sanitized = TextSanitizer.stripMinecraftColor(value).replace("\r", " ");
+        return TextSanitizer.truncate(sanitized, maxLength);
     }
 
     private boolean sendLifecycle(DiscordEventStyle style, LifecycleSnapshot lifecycleSnapshot) {
@@ -820,9 +825,10 @@ public final class DiscordBotService {
             return null;
         }
 
-        String deathMessage = rawDeathMessage == null || rawDeathMessage.isBlank()
+        String cleanDeathMessage = TextSanitizer.safeDiscord(rawDeathMessage);
+        String deathMessage = cleanDeathMessage.isBlank()
                 ? player.getName() + " died."
-                : rawDeathMessage;
+                : cleanDeathMessage;
         return new DeathSnapshot(
                 deathMessage,
                 cause,

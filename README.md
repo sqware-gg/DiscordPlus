@@ -4,7 +4,7 @@
 
 **Join the SQWARE Discord: [discord.sqware.gg](https://discord.sqware.gg).**
 
-DiscordPlus is a DiscordSRV-style Minecraft Discord bridge for Paper servers. It connects Minecraft chat, Discord chat, server events, account linking, player status commands, Discord role sync, and companion plugin commands in one configurable plugin.
+DiscordPlus is a Minecraft Discord bridge for Paper servers. It connects Minecraft chat, Discord chat, server events, account linking, player status commands, Discord role sync, and companion plugin commands in one configurable plugin.
 
 Use it when you want a Discord bridge that also understands SQWARE plugins such as PointsPlus, PlaytimePlus, AuctionsPlus, and OrdersPlus.
 
@@ -12,7 +12,7 @@ Use it when you want a Discord bridge that also understands SQWARE plugins such 
 
 - Minecraft chat to Discord.
 - Discord chat to Minecraft.
-- Optional webhook chat with player-style names and avatars.
+- Optional webhook chat with Minecraft player names and avatars.
 - Account linking with `/discord link` and `!link <code>`.
 - Discord commands for online players, linked accounts, points, playtime, auctions, and orders.
 - ChatPlus interactive placeholder support for relaying shared items, inventories, and ender chests to Discord.
@@ -24,9 +24,8 @@ Use it when you want a Discord bridge that also understands SQWARE plugins such 
 
 ## Requirements
 
-- Paper
-- API target: Paper `1.18.2`
-- Java `17+`
+- Paper `26.2+`
+- Java `25+`
 - JDA `6.4.1`
 - Maven wrapper included
 

@@ -3,40 +3,32 @@ package dev.discordplus.chat;
 import dev.discordplus.config.DiscordPlusConfig;
 import dev.discordplus.discord.DiscordBotService;
 import dev.discordplus.roles.RoleSyncService;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ChatBridgeListener implements Listener {
+    private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
+
     private final JavaPlugin plugin;
     private final DiscordPlusConfig config;
     private final DiscordBotService botService;
     private final RoleSyncService roleSyncService;
-    private final boolean legacyChatEnabled;
 
     public ChatBridgeListener(JavaPlugin plugin, DiscordPlusConfig config, DiscordBotService botService,
-                              RoleSyncService roleSyncService, boolean legacyChatEnabled) {
+                              RoleSyncService roleSyncService) {
         this.plugin = plugin;
         this.config = config;
         this.botService = botService;
         this.roleSyncService = roleSyncService;
-        this.legacyChatEnabled = legacyChatEnabled;
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onChat(AsyncPlayerChatEvent event) {
-        if (!legacyChatEnabled || !config.minecraftToDiscord()) {
-            return;
-        }
-        botService.sendMinecraftChat(event.getPlayer(), ChatPlusCompatibility.renderDiscordMessageRich(
-                config, event.getPlayer(), event.getMessage(), event.getMessage()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -60,7 +52,8 @@ public final class ChatBridgeListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        botService.sendDeath(player, event.getDeathMessage());
+        Component deathMessage = event.deathMessage();
+        botService.sendDeath(player, deathMessage == null ? null : PLAIN.serialize(deathMessage));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

@@ -1,7 +1,7 @@
 name: DiscordPlus
 version: 0.1.0
 main: dev.discordplus.DiscordPlusPlugin
-api-version: '26.1.2'
+api-version: '26.2'
 author: SQWARE / Conflict
 website: https://sqware.gg
 description: Discord chat, linking, and role synchronisation for Paper servers.

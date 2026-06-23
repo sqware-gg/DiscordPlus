@@ -23,7 +23,7 @@
         <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>${java.version}</maven.compiler.release>
-        <paper.version>26.1.2.build.69-stable</paper.version>
+        <paper.version>26.2.build.30-alpha</paper.version>
         <bstats.version>3.2.1</bstats.version>
         <jda.version>6.4.1</jda.version>
     </properties>
@@ -79,7 +79,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

@@ -2,6 +2,7 @@ package dev.discordplus;
 
 import dev.discordplus.api.DiscordPlusApi;
 import dev.discordplus.chat.ChatBridgeListener;
+import dev.discordplus.chat.LegacyChatBridgeListener;
 import dev.discordplus.command.DiscordCommand;
 import dev.discordplus.config.ConfigReferenceWriter;
 import dev.discordplus.config.DiscordPlusConfig;
@@ -37,7 +38,10 @@ public final class DiscordPlusPlugin extends JavaPlugin {
         DiscordPlusApi.register(botService);
 
         boolean modernChat = registerPaperChatListener();
-        getServer().getPluginManager().registerEvents(new ChatBridgeListener(this, discordConfig, botService, roleSyncService, !modernChat), this);
+        getServer().getPluginManager().registerEvents(new ChatBridgeListener(this, discordConfig, botService, roleSyncService), this);
+        if (!modernChat) {
+            getServer().getPluginManager().registerEvents(new LegacyChatBridgeListener(discordConfig, botService), this);
+        }
         integrationListener = new PluginIntegrationListener(this, discordConfig, botService);
         getServer().getPluginManager().registerEvents(integrationListener, this);
         integrationListener.registerAvailable();
